@@ -1,0 +1,6 @@
+{
+    "useInvertImgDetection":{
+        "enabled": true,
+        "brightness_threhold": 0.75
+    }
+}
