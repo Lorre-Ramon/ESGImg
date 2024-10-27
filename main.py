@@ -1,4 +1,4 @@
-from modules import * 
+from modules import PDFExtract
 from utils import *
 
 if __name__ == "__main__": 
@@ -6,7 +6,6 @@ if __name__ == "__main__":
     
     try:
         pdf = PDFExtract(pdf_path)
-        pdf.pdf_info
     except Exception as e: 
         logger.error(f"Error: {e}")
         raise e
