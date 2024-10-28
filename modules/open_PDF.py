@@ -7,6 +7,12 @@ import shutil
 
 class OpenPDF: 
     def __init__(self, pdf_path:str, global_config_name:str)->None: 
+        """初始化OpenPDF类
+
+        Args:
+            pdf_path (str): 读取的PDF文件路径
+            global_config_name (str): 全局配置名称
+        """
         self.pdf_path = pdf_path 
         self.pdf_filename = os.path.basename(pdf_path)
         
