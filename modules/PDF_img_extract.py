@@ -1,8 +1,8 @@
 from utils import logger
+from modules import OpenPDF
 
 import os 
 import io
-import json
 from PIL import Image, ImageOps 
 import numpy as np
 import pandas as pd 
@@ -28,28 +28,6 @@ class PDFImage:
     y1: int
     center_coord: Tuple[int,int]
 
-class OpenPDF: 
-    def __init__(self, pdf_path:str, global_config_name:str)->None: 
-        self.pdf_path = pdf_path 
-        self.pdf_filename = os.path.basename(pdf_path)
-        
-        # configs 
-        with open("configs/global_configs.json", "r") as f:
-            global_configs = json.load(f)
-            
-        self.global_config = global_configs[global_config_name]
-        
-    def __enter__(self):
-        self.pdf = pymupdf.open(self.pdf_path)
-        self.pdf_page_count = self.pdf.page_count
-        
-        self.img_folder_path = self.createImgFolder() 
-        logger.info(f"pdf: {self.pdf_filename}图片文件夹创建成功")
-        
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.pdf.close()
-        logger.info(f"pdf: {self.pdf_filename}图片提取结束")
-
 class PDFImgExtract(OpenPDF): 
     def __init__(self)->None: 
         super().__init__()
@@ -58,6 +36,8 @@ class PDFImgExtract(OpenPDF):
         
         logger.info(f"pdf: {self.pdf_filename}开始提取图片")
         successful_img_cnt = 0
+        coords_df = pd.DataFrame(columns=["file_name", "x0", "y0", "x1", "y1", 
+                                          "centre_coordinate"])
         # 遍历PDF每一页
         for page_num in range(self.pdf_page_count): 
             img_list = self.extractImgInfoList(page_num)
@@ -76,29 +56,24 @@ class PDFImgExtract(OpenPDF):
                                 \n\t图片尺寸过小，取消提取")
                     continue
                 
+                #TODO: 图片反色检测
+                
                 self.extractImgCoord(page, img)
+                info = pd.Series([img.img_filename, 
+                                  img.x0, img.y0, img.x1, img.y1, 
+                                  img.center_coord], 
+                                 index=coords_df.columns)
+                coords_df = pd.concat([coords_df, info], axis=0)
+                
                 self.saveImg(img)
                 
                 successful_img_cnt += 1
         
         if successful_img_cnt < len(self.pdf) + self.global_config["successful_img_cnt_buffer"]: 
             logger.warning(f"pdf: {self.pdf_filename}提取图片数量过少, 数量: {successful_img_cnt}")
-            
+           
     
     
-    def createImgFolder(self) -> str: 
-        """创建图片文件夹
-        
-        Returns:
-            str: 图片文件夹路径
-        """
-        try:
-            folder_path = os.path.join(os.path.dirname(self.pdf_path), f"{self.pdf_filename.split('-')[0]}_img")
-            os.makedirs(folder_path, exist_ok=True)
-            return folder_path
-        except Exception as e: 
-            logger.error(f"Error: {e}\n\tpdf: {self.pdf_filename}取消创建图片文件夹")
-            return ""
         
     def extractImgInfoList(self, page_num:int)->List[Tuple[int,int,int,int,int,str,str,str,str,int]]: 
         """提取PDF某页的全部图片Xref信息
@@ -185,10 +160,6 @@ class PDFImgExtract(OpenPDF):
         except Exception as e: 
             logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t保存图片失败: {e}")
-            
-        
-            
-            
             
                                 
 class PDFImageFeatureDetect: 
