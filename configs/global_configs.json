@@ -1,5 +1,6 @@
 { 
     "test_set": { 
+        "detect_inverted_img": false,
         "successful_img_cnt_buffer": 5
     }
         
