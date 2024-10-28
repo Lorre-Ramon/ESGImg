@@ -1,6 +1,8 @@
 {
     "useInvertImgDetection":{
         "enabled": true,
-        "brightness_threhold": 0.75
+        "brightness_threshold": 0.75, 
+        "histogram_threshold": 0.8, 
+        "edge_threshold": 0.8
     }
 }
