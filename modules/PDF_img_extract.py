@@ -58,7 +58,14 @@ class PDFImgExtract(OpenPDF):
                     continue
                 
                 #TODO: 图片反色检测
-                
+                if self.global_config["detect_img_feature"]: 
+                    img_feature_detection = PDFImageFeatureDetection(img)
+                    
+                    if img_feature_detection.main(img): 
+                        img.img_lazy_open = ImageOps.invert(img.img_lazy_open)
+                        logger.warninfoing(f"pdf: {self.pdf_filename}, page_num: {page_num}, img_index: {img_index}\
+                                    \n\t图片反色, 进行反色处理")
+                     
                 self.extractImgCoord(page, img)
                 info = pd.Series([img.img_filename, 
                                   img.x0, img.y0, img.x1, img.y1, 
@@ -74,8 +81,6 @@ class PDFImgExtract(OpenPDF):
             logger.warning(f"pdf: {self.pdf_filename}提取图片数量过少, 数量: {successful_img_cnt}")
            
         return coords_df
-    
-    
         
     def extractImgInfoList(self, page_num:int)->List[Tuple[int,int,int,int,int,str,str,str,str,int]]: 
         """提取PDF某页的全部图片Xref信息
@@ -119,6 +124,8 @@ class PDFImgExtract(OpenPDF):
                     raise TypeError("img类型非dict")
                 
             img.img_lazy_open = Image.open(io.BytesIO(img.img_bytes)) 
+            if img.img_lazy_open.mode != "RGB": 
+                img.img_lazy_open = img.img_lazy_open.convert("RGB")
         except Image.DecompressionBombError as e:
             logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t检测到过大图片,取消保存: {e}")
@@ -163,25 +170,18 @@ class PDFImgExtract(OpenPDF):
             logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t保存图片失败: {e}")
                                 
-class PDFImageFeatureDetect(PDFImgExtract): 
+class PDFImageFeatureDetection: 
     def __init__(self, img:PDFImage)->None:
-        super().__init__()
         self.img = img
-        
-    def main(self) -> bool:
-        if self.global_config["detect_inverted_img"]:
-            self.isImageInverted(self.img)
-        else:
-            None
     
-    def isImageInverted(self, img:PDFImage)->bool:
+    def main(self, img:PDFImage)->bool:
         """判断图片是否反色的main函数
 
         Args:
             img (PDFImage): 图片
 
         Returns:
-            bool: True为反色,False为正常
+            bool: 投票后的结果. True为反色,False为正常
         """
         return sum([self.isBright(img), self.compareColorHistogram(img), self.detectEdge(img)]) > 2
     
