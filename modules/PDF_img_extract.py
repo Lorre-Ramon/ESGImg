@@ -22,6 +22,7 @@ class PDFImage:
     img_bytes: bytes 
     img_xref: str
     base_img: dict
+    img_lazy_open: Image.Image
     x0: int 
     y0: int 
     x1: int
@@ -113,9 +114,14 @@ class PDFImgExtract(OpenPDF):
                 case dict():
                     img.img_bytes = img.base_img['image'] 
                 case __:
-                    logger.bug(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+                    logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                                 \n\tError: img类型非dict")
                     raise TypeError("img类型非dict")
+                
+            img.img_lazy_open = Image.open(io.BytesIO(img.img_bytes)) 
+        except Image.DecompressionBombError as e:
+            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+                        \n\t检测到过大图片,取消保存: {e}")
         except Exception as e:
             logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\tError: {e}")
@@ -140,7 +146,7 @@ class PDFImgExtract(OpenPDF):
             img.x0, img.y0, img.x1, img.y1 = None, None, None, None
             img.center_coord = None
         except Exception as e:
-            logger.bug(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\tUnexpected BUG: {e}")
             raise e
             
@@ -151,73 +157,111 @@ class PDFImgExtract(OpenPDF):
             img (PDFImage): 图片信息dataclass
         """
         try: 
-            image = Image.open(io.BytesIO(img.img_bytes))
             image_filepath = os.path.join(img.img_folderpath, img.img_filename)
-            image.save(open(image_filepath, "wb"), "PNG")
-        except Image.DecompressionBombError as e:
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
-                        \n\t检测到过大图片,取消保存: {e}")
+            img.img_lazy_open.save(open(image_filepath, "wb"), "PNG")
         except Exception as e: 
             logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t保存图片失败: {e}")
-            
                                 
-class PDFImageFeatureDetect: 
-    def __init__(self, img)->None:
+class PDFImageFeatureDetect(PDFImgExtract): 
+    def __init__(self, img:PDFImage)->None:
+        super().__init__()
         self.img = img
+        
+    def main(self) -> bool:
+        if self.global_config["detect_inverted_img"]:
+            self.isImageInverted(self.img)
+        else:
+            None
     
-    def isImageInverted(self, img)->bool:
+    def isImageInverted(self, img:PDFImage)->bool:
         """判断图片是否反色的main函数
 
         Args:
-            img (_type_): 传入的图片
+            img (PDFImage): 图片
 
         Returns:
-            bool: True为反色，False为正常
+            bool: True为反色,False为正常
         """
-        pass 
+        return sum([self.isBright(img), self.compareColorHistogram(img), self.detectEdge(img)]) > 2
     
-    def isBright(self, img, brightness_threshold:float = 0.75) -> bool: 
+    def isBright(self, img:PDFImage, brightness_threshold:float = 0.75) -> bool: 
         """亮度分布检测
         通过计算图像中明亮像素（灰度值大于128）的比例，来判断图像的亮度分布情况
 
         Args:
-            img (_type_): 处理的图像
+            img (PDFImage): 处理的图像
             brightness_threshold (float): 比例阈值. Defaults to 0.75.
 
         Returns:
             bool: True为图片为反色，False为正常
         """
-        img_gray = img.convert('L')
-        img_gray_np: np.ndarray = np.array(img_gray)
-        
-        light_fraction = np.mean(img_gray_np > 128)
-        brightness_flag:bool = light_fraction > brightness_threshold 
-        
-        return brightness_flag
+        try:
+            img2 = img.img_lazy_open
+            img_gray = img2.convert('L')
+            img_gray_np: np.ndarray = np.array(img_gray)
+            
+            light_fraction = np.mean(img_gray_np > 128)
+            brightness_flag:bool = light_fraction > brightness_threshold 
+            
+            return brightness_flag
+        except Exception as e:
+            logger.error(f"pdf: {img.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+                        \n\t亮度分布检测失败: {e}")
+            return False
     
-    def compareColorHistogram(self, threshold:float = 0.8) -> bool:
-        pass 
-    
-    def detectEdge(self, img, edge_threshold:float = 0.1) -> bool: 
-        """边缘检测
-        通过计算图像中边缘像素的比例，来判断图像是否为边缘图像
+    def compareColorHistogram(self, img:PDFImage, histogram_threshold:float = 0.8) -> bool:
+        """颜色直方图比较 #TODO: 方法有效性存疑
 
         Args:
-            img (_type_): 处理的图像
-            edge_threshold (float): 比例阈值. Defaults to 0.1.
+            img (PDFImage): 图片
+            histogram_threshold (float, optional): 原始图与反色图的直方图相关系数阈值. Defaults to 0.8.
 
         Returns:
             bool: True为图片为反色，False为正常
         """
-        img_gray = img.convert('L')
-        img_gray_np: np.ndarray = np.array(img_gray)
+        img2 = img.img_lazy_open
         
-        edges = feature.canny(img_gray_np)
-        edge_fraction = np.mean(edges)
-        edge_flag:bool = edge_fraction > edge_threshold
-        
-        return edge_flag
+        try:
+            img2 = img2.convert("RGB")
+            
+            img_hist = exposure.histogram(np.array(img2.convert("RGB")), nbins=256)
+            inverted_img_hist = exposure.histogram(np.array(ImageOps.invert(img2).convert("RGB")), nbins=256)
+            hist_correlation = np.corrcoef(img_hist[0], inverted_img_hist[0])[0, 1]
+            histogram_flag:bool = hist_correlation > histogram_threshold
+            
+            return histogram_flag
+        except Exception as e:
+            logger.error(f"pdf: {img.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+                        \n\t颜色直方图比较失败: {e}")
+            return False
     
+    def detectEdge(self, img:PDFImage, edge_threshold:float = 0.8) -> bool: 
+        """边缘检测 #TODO: 方法有效性存疑
+        使用边缘检测算法Canny来提取图像的边缘。然后，比较原始图像和其反色版本的边缘强度。
+        使用相关系数来测量原始图像的边缘和其反色版本之间的边缘强度相似性。
+        如果相关系数超过预设的边缘检测阈值，该方法将投票为“反色”。
+
+        Args:
+            img (PDFImage): 处理的图像
+            edge_threshold (float): 比例阈值. Defaults to 0.8.
+
+        Returns:
+            bool: True为图片为反色，False为正常
+        """
+        try: 
+            img2 = img.img_lazy_open
+            img2 = img2.convert("RGB")
+            
+            edges_original = feature.canny(color.rgb2gray(np.array(img2)))
+            edges_inverted = feature.canny(color.rgb2gray(np.array(ImageOps.invert(img2))))
+            edge_correlation = np.corrcoef(edges_original.flatten(), edges_inverted.flatten())[0, 1]
+            edge_flag = edge_correlation > edge_threshold
+            
+            return edge_flag
+        except Exception as e:
+            logger.error(f"pdf: {img.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+                        \n\t边缘检测失败: {e}")
+            return False
 
         
