@@ -2,6 +2,7 @@ from utils import logger
 
 import os 
 import io
+import json
 from PIL import Image, ImageOps 
 import numpy as np
 import pandas as pd 
@@ -27,22 +28,41 @@ class PDFImage:
     y1: int
     center_coord: Tuple[int,int]
 
-class PDFExtract: 
-    def __init__(self, pdf_path:str)->None: 
+class OpenPDF: 
+    def __init__(self, pdf_path:str, global_config_name:str)->None: 
         self.pdf_path = pdf_path 
-        self.pdf = pymupdf.open(pdf_path)
-        self.pdf_page_count = self.pdf.page_count
         self.pdf_filename = os.path.basename(pdf_path)
         
+        # configs 
+        with open("configs/global_configs.json", "r") as f:
+            global_configs = json.load(f)
+            
+        self.global_config = global_configs[global_config_name]
+        
     def __enter__(self):
-        self.img_folder_path = self.createImgFolder()
+        self.pdf = pymupdf.open(self.pdf_path)
+        self.pdf_page_count = self.pdf.page_count
+        
+        self.img_folder_path = self.createImgFolder() 
+        logger.info(f"pdf: {self.pdf_filename}图片文件夹创建成功")
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.pdf.close()
+        logger.info(f"pdf: {self.pdf_filename}图片提取结束")
+
+class PDFImgExtract(OpenPDF): 
+    def __init__(self)->None: 
+        super().__init__()
         
     def main(self) -> None: 
         
+        logger.info(f"pdf: {self.pdf_filename}开始提取图片")
+        successful_img_cnt = 0
+        # 遍历PDF每一页
         for page_num in range(self.pdf_page_count): 
             img_list = self.extractImgInfoList(page_num)
             page = self.pdf[page_num]
-            
+            # 遍历每一页的图片
             for img_index, img_info in enumerate(img_list): 
                 img_filename = f"{self.pdf_filename}_page_{page_num + 1}_img_{img_index + 1}.png"
                 img = PDFImage(self.pdf_filename, page_num, img_index, 
@@ -55,6 +75,16 @@ class PDFExtract:
                     logger.warning(f"pdf: {self.pdf_filename}, page_num: {page_num}, img_index: {img_index}\
                                 \n\t图片尺寸过小，取消提取")
                     continue
+                
+                self.extractImgCoord(page, img)
+                self.saveImg(img)
+                
+                successful_img_cnt += 1
+        
+        if successful_img_cnt < len(self.pdf) + self.global_config["successful_img_cnt_buffer"]: 
+            logger.warning(f"pdf: {self.pdf_filename}提取图片数量过少, 数量: {successful_img_cnt}")
+            
+    
     
     def createImgFolder(self) -> str: 
         """创建图片文件夹

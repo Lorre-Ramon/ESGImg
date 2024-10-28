@@ -1,6 +1,6 @@
 { 
     "test_set": { 
-        
+        "successful_img_cnt_buffer": 5
     }
         
 }
