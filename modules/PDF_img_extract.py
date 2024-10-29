@@ -31,11 +31,11 @@ class PDFImage:
 
 class PDFImgExtract(OpenPDF): 
     def __init__(self)->None: 
+        """初始化PDFImgExtract类"""
         super().__init__()
         
     def main(self) -> pd.DataFrame: 
         
-        logger.info(f"pdf: {self.pdf_filename}开始提取图片")
         successful_img_cnt = 0
         coords_df:pd.DataFrame = pd.DataFrame(columns=["file_name", "x0", "y0", "x1", "y1", 
                                           "centre_coordinate"])
@@ -57,7 +57,6 @@ class PDFImgExtract(OpenPDF):
                                 \n\t图片尺寸过小, 取消提取")
                     continue
                 
-                #TODO: 图片反色检测
                 if self.global_config["detect_img_feature"]: 
                     img_feature_detection = PDFImageFeatureDetection(img)
                     
@@ -79,7 +78,7 @@ class PDFImgExtract(OpenPDF):
         
         if successful_img_cnt < len(self.pdf) + self.global_config["successful_img_cnt_buffer"]: 
             logger.warning(f"pdf: {self.pdf_filename}提取图片数量过少, 数量: {successful_img_cnt}")
-           
+        
         return coords_df
         
     def extractImgInfoList(self, page_num:int)->List[Tuple[int,int,int,int,int,str,str,str,str,int]]: 
