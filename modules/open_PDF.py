@@ -34,7 +34,7 @@ class OpenPDF:
         self.pdf.close()
         logger.info(f"pdf: {self.pdf_filename}关闭，计算结束")
         
-        self.deleteImgFolder()
+        self.deleteImgFolder(self.img_folder_path)
         logger.info(f"pdf: {self.pdf_filename}图片文件夹删除成功")
         
     def createImgFolder(self) -> str: 
@@ -47,7 +47,7 @@ class OpenPDF:
             str: 图片文件夹路径
         """
         try:
-            folder_path = os.path.join(os.path.dirname(self.pdf_path), f"{self.pdf_filename.split('-')[0]}_img")
+            folder_path = os.path.join("output", f"{self.pdf_filename.split('-')[0]}_img")
             os.makedirs(folder_path, exist_ok=True)
             return folder_path
         except Exception as e: 
@@ -55,18 +55,18 @@ class OpenPDF:
             raise e
             # return ""
         
-    def deleteImgFolder(self) -> None: 
+    def deleteImgFolder(self, img_folder_path:str) -> None: 
         """删除图片文件夹
 
         Raises:
             e: Anomaly exception for debugging
         """
         try: 
-            if os.path.exists(self.img_folder_path): 
-                shutil.rmtree(self.img_folder_path)
-                logger.info(f"pdf: {self.pdf_filename}图片文件夹删除")
+            if os.path.exists(img_folder_path): 
+                shutil.rmtree(img_folder_path)
+                logger.info(f"{self.pdf_filename}图片文件夹删除")
             else:
-                logger.error(f"pdf: {self.pdf_filename}图片文件夹不存在")
+                logger.error(f"{self.pdf_filename}图片文件夹不存在")
         except Exception as e: 
-            logger.BUG(f"Error: {e}\n\tpdf: {self.pdf_filename}图片文件夹删除失败")
+            logger.BUG(f"Error: {e}\n\t{self.pdf_filename}图片文件夹删除失败")
             raise e 
