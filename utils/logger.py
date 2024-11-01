@@ -15,9 +15,9 @@ if not os.path.exists(log_filepath):
 logger = logging.getLogger(logger_name)
 logger.setLevel(logging.INFO)
 
-# 创建控制台处理器并设置级别为INFO
+# 创建控制台处理器并设置级别为ERROR
 ch = logging.StreamHandler()
-ch.setLevel(logging.INFO)
+ch.setLevel(logging.ERROR)
 
 # 创建文件处理器并设置级别为INFO
 fh = logging.FileHandler(log_filepath)
