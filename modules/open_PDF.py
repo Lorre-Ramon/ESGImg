@@ -4,23 +4,38 @@ import os
 import json
 import pymupdf
 import shutil
+from dataclasses import dataclass
 
+@dataclass
 class OpenPDF: 
-    def __init__(self, pdf_path:str, global_config_name:str)->None: 
-        """初始化OpenPDF类
-
-        Args:
-            pdf_path (str): 读取的PDF文件路径
-            global_config_name (str): 全局配置名称
-        """
-        self.pdf_path = pdf_path 
-        self.pdf_filename = os.path.basename(pdf_path)
+    pdf_path: str 
+    global_config_name:str
+    year: int 
+    type: str
+    thscode: str
+    stock_name_cn: str
+    file_name_short:str
+    pdf_filename:str
+    
+    def __post_init__(self)->None: 
         
         # configs 
         with open("configs/global_configs.json", "r") as f:
             global_configs = json.load(f)
-            
-        self.global_config = global_configs[global_config_name]
+        self.global_config = global_configs[self.global_config_name]
+        
+        # Basic Info
+        self.getBasicInfo()
+        
+    def getBasicInfo(self) -> None: 
+        """获取PDF文件的基本信息"""
+        self.year = int(self.pdf_path.split("/")[2])
+        self.type = self.pdf_path.split("/")[1]
+        self.thscode = self.pdf_path.split("/")[-1].split("-")[0]
+        self.stock_name_cn = self.pdf_path.split("/")[-1].split("-")[1]
+        self.file_name_short = self.pdf_path.split("/")[-1].split("-")[-1]
+        
+        self.pdf_filename = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
         
     def __enter__(self):
         self.pdf = pymupdf.open(self.pdf_path)
