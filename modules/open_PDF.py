@@ -51,7 +51,6 @@ class OpenPDF:
         logger.info(f"pdf: {self.pdf_filename}关闭，计算结束")
         
         self.deleteImgFolder(self.img_folder_path)
-        logger.info(f"pdf: {self.pdf_filename}图片文件夹删除成功")
         
     def createImgFolder(self) -> str: 
         """创建图片文件夹
