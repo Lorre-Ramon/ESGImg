@@ -11,6 +11,9 @@ from skimage import feature, color, exposure
 from typing import List, Tuple
 from dataclasses import dataclass
 
+import warnings
+warnings.filterwarnings("ignore")
+
 @dataclass 
 class PDFImage:
     pdf_filename: str
@@ -19,65 +22,78 @@ class PDFImage:
     img_folderpath: str
     img_filename: str
     img_info: Tuple[int,int,int,int,int,str,str,str,str,int]
-    img_bytes: bytes 
-    img_xref: str
-    base_img: dict
-    img_lazy_open: Image.Image
-    x0: int 
-    y0: int 
-    x1: int
-    y1: int
-    center_coord: Tuple[int,int]
+    img_bytes: bytes = None 
+    img_xref: str = None 
+    base_img: dict = None 
+    img_lazy_open: Image.Image = None 
+    x0: int = None 
+    y0: int = None 
+    x1: int = None 
+    y1: int = None 
+    center_coord: Tuple[int,int] = None 
 
-class PDFImgExtract(OpenPDF): 
-    def __init__(self)->None: 
+class PDFImgExtract: 
+    def __init__(self, pdf_instance:OpenPDF) -> None: 
         """初始化PDFImgExtract类"""
-        super().__init__()
+        self.pdf:OpenPDF = pdf_instance
         
+    def __post_init__(self) -> None: 
+        """__init__函数的后处理函数"""
+        import json
+        with open("configs/img_extract_configs.json", "r") as f:
+            configs = json.load(f)
+            
+        self.img_extract_config = configs["img_extract"]
+    
     def main(self) -> pd.DataFrame: 
-        
+        """PDF图片提取主函数
+
+        Returns:
+            pd.DataFrame: 返回当前和历史的PDF文件的图片坐标信息
+        """
         successful_img_cnt = 0
         coords_df:pd.DataFrame = pd.DataFrame(columns=["file_name", "x0", "y0", "x1", "y1", 
                                           "centre_coordinate"])
         # 遍历PDF每一页
-        for page_num in range(self.pdf_page_count): 
+        for page_num in range(self.pdf.pdf_page_count): 
             img_list = self.extractImgInfoList(page_num)
-            page = self.pdf[page_num]
+            page = self.pdf.pdf[page_num]
             # 遍历每一页的图片
             for img_index, img_info in enumerate(img_list): 
-                img_filename = f"{self.pdf_filename}_page_{page_num + 1}_img_{img_index + 1}.png"
-                img = PDFImage(self.pdf_filename, page_num, img_index, 
-                               self.img_folder_path,
+                img_filename = f"{self.pdf.file_name_short}_page_{page_num + 1}_img_{img_index + 1}.png"
+                img = PDFImage(self.pdf.file_name_short, page_num, img_index, 
+                               self.pdf.img_folder_path,
                                img_filename, img_info)
                 
-                self.extractImgInfo(page, page_num, img_index, img_info)
+                self.extractImgInfo(img)
+                self.extractImgCoord(page, img)
                 
-                if abs(img.x0 - img.x1) < 50 or abs(img.y0 - img.y1) < 50: 
-                    logger.warning(f"pdf: {self.pdf_filename}, page_num: {page_num}, img_index: {img_index}\
+                # if abs(img.x0 - img.x1) < 50 or abs(img.y0 - img.y1) < 50:  #TODO: 是否对长度添加限制
+                if abs(img.x0 - img.x1) < self.pdf.global_config["img_height_threshold"]: 
+                    logger.warning(f"pdf: {self.pdf.file_name_short}, page_num: {page_num}, img_index: {img_index}\
                                 \n\t图片尺寸过小, 取消提取")
                     continue
                 
-                if self.global_config["detect_img_feature"]: 
+                if self.pdf.global_config["detect_inverted_img"]: 
                     img_feature_detection = PDFImageFeatureDetection(img)
                     
                     if img_feature_detection.main(img): 
                         img.img_lazy_open = ImageOps.invert(img.img_lazy_open)
-                        logger.warninfoing(f"pdf: {self.pdf_filename}, page_num: {page_num}, img_index: {img_index}\
+                        logger.warninfoing(f"pdf: {self.pdf.file_name_short}, page_num: {page_num}, img_index: {img_index}\
                                     \n\t图片反色, 进行反色处理")
                      
-                self.extractImgCoord(page, img)
                 info = pd.Series([img.img_filename, 
                                   img.x0, img.y0, img.x1, img.y1, 
                                   img.center_coord], 
                                  index=coords_df.columns)
-                coords_df = pd.concat([coords_df, info], axis=0)
+                coords_df = pd.concat([coords_df, pd.DataFrame([info])], ignore_index=True)
                 
                 self.saveImg(img)
                 
                 successful_img_cnt += 1
         
-        if successful_img_cnt < len(self.pdf) + self.global_config["successful_img_cnt_buffer"]: 
-            logger.warning(f"pdf: {self.pdf_filename}提取图片数量过少, 数量: {successful_img_cnt}")
+        if successful_img_cnt < len(self.pdf.pdf) + self.pdf.global_config["successful_img_cnt_buffer"]: 
+            logger.warning(f"pdf: {self.pdf.file_name_short}提取图片数量过少, 数量: {successful_img_cnt}")
         
         return coords_df
         
@@ -99,9 +115,9 @@ class PDFImgExtract(OpenPDF):
                 •	int: 额外编码参数
         """
         try: 
-            return self.pdf[page_num].get_images(full=True)
+            return self.pdf.pdf[page_num].get_images(full=True)
         except Exception as e: 
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {page_num}\n\t取消提取图片信息Error: {e}")
+            logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {page_num}\n\t取消提取图片信息Error: {e}")
             return []
     
     def extractImgInfo(self, img:PDFImage) -> None: 
@@ -112,13 +128,13 @@ class PDFImgExtract(OpenPDF):
         """
         try: 
             img.img_xref = img.img_info[0]
-            img.base_img = self.pdf.extract_image(img.img_xref)
+            img.base_img = self.pdf.pdf.extract_image(img.img_xref)
             
             match img.base_img:
                 case dict():
                     img.img_bytes = img.base_img['image'] 
                 case __:
-                    logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+                    logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                                 \n\tError: img类型非dict")
                     raise TypeError("img类型非dict")
                 
@@ -126,10 +142,10 @@ class PDFImgExtract(OpenPDF):
             if img.img_lazy_open.mode != "RGB": 
                 img.img_lazy_open = img.img_lazy_open.convert("RGB")
         except Image.DecompressionBombError as e:
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+            logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t检测到过大图片,取消保存: {e}")
         except Exception as e:
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+            logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\tError: {e}")
         
     def extractImgCoord(self, page:pymupdf.Page, img:PDFImage)->None: 
@@ -141,18 +157,18 @@ class PDFImgExtract(OpenPDF):
         """
         try: 
             img_xref = img.img_info[0]
-            image_rect = page.get_image_rect(img_xref)
+            image_rect = page.get_image_rects(img_xref)
             rect = image_rect[0]
             img.x0, img.y0, img.x1, img.y1 = rect.x0, rect.y0, rect.x1, rect.y1
             img.center_coord = (img.x0 + img.x1)/2 , (img.y0 + img.y1)/2
-        except not image_rect: 
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+        except not page.get_image_rects(img_xref): 
+            logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\tError: Cannot get image rectangle for xref {img_xref}")
             image_rect = None
             img.x0, img.y0, img.x1, img.y1 = None, None, None, None
             img.center_coord = None
         except Exception as e:
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+            logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\tUnexpected BUG: {e}")
             raise e
             
@@ -166,7 +182,7 @@ class PDFImgExtract(OpenPDF):
             image_filepath = os.path.join(img.img_folderpath, img.img_filename)
             img.img_lazy_open.save(open(image_filepath, "wb"), "PNG")
         except Exception as e: 
-            logger.error(f"pdf: {self.pdf_filename}, page_num: {img.pdf_page}, img_index: {img.img_index}\
+            logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t保存图片失败: {e}")
                                 
 class PDFImageFeatureDetection: 
