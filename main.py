@@ -27,23 +27,26 @@ def extract_pdf_images(pdf:OpenPDF) -> None:
                                           "centre_coordinate"])
     
     try:
-        pdf_img_extract = PDFImgExtract()
-        logger.info(f"pdf: {pdf_img_extract.pdf_filename}开始提取图片")
-        img_coords_df_temp:pd.DataFrame = pdf.main()
+        pdf_img_extract = pdf.getPDFImgExtract()
+        logger.info(f"pdf: {pdf.pdf_filename}开始提取图片")
+        img_coords_df_temp:pd.DataFrame = pdf_img_extract.main()
         img_coords_df = pd.concat([img_coords_df, img_coords_df_temp], ignore_index=True)
         img_coords_df.to_excel(img_coords_df_filepath, index=False)
     except Exception as e: 
-        logger.error(f"Error: {e}")
+        logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
     finally: 
-        logger.info(f"pdf: {pdf_img_extract.pdf_filename}完成提取图片")
+        logger.info(f"pdf: {pdf.pdf_filename}完成提取图片")
 
 
 if __name__ == "__main__": 
     pdf_path = "data/SUS/2022/00941.HK-中国移动-中国移动 2022年度可持续发展报告-2023-03-24.pdf"
     
     try:
+        logger.info("程序开始")
         main(pdf_path)
     except Exception as e: 
         logger.error(f"Error: {e}")
         raise e
+    finally:
+        logger.info("程序结束")

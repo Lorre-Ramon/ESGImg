@@ -10,15 +10,9 @@ from dataclasses import dataclass
 class OpenPDF: 
     pdf_path: str 
     global_config_name:str
-    year: int 
-    type: str
-    thscode: str
-    stock_name_cn: str
-    file_name_short:str
-    pdf_filename:str
     
     def __post_init__(self)->None: 
-        
+        """__init__函数的后处理函数"""
         # configs 
         with open("configs/global_configs.json", "r") as f:
             global_configs = json.load(f)
@@ -29,15 +23,20 @@ class OpenPDF:
         
     def getBasicInfo(self) -> None: 
         """获取PDF文件的基本信息"""
-        self.year = int(self.pdf_path.split("/")[2])
-        self.type = self.pdf_path.split("/")[1]
-        self.thscode = self.pdf_path.split("/")[-1].split("-")[0]
-        self.stock_name_cn = self.pdf_path.split("/")[-1].split("-")[1]
-        self.file_name_short = self.pdf_path.split("/")[-1].split("-")[-1]
+        self.year:int = int(self.pdf_path.split("/")[2])
+        self.type:str = self.pdf_path.split("/")[1]
+        self.thscode:str = self.pdf_path.split("/")[-1].split("-")[0]
+        self.stock_name_cn:str = self.pdf_path.split("/")[-1].split("-")[1]
+        self.file_name_short:str = self.pdf_path.split("/")[-1].split("-")[2]
         
-        self.pdf_filename = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
+        self.pdf_filename:str = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
         
-    def __enter__(self):
+    def __enter__(self) -> "OpenPDF":
+        """__enter__函数
+
+        Returns:
+            OpenPDF: 返回OpenPDF实例
+        """
         self.pdf = pymupdf.open(self.pdf_path)
         logger.info(f"pdf: {self.pdf_filename}打开成功")
         self.pdf_page_count = self.pdf.page_count
@@ -45,7 +44,9 @@ class OpenPDF:
         self.img_folder_path = self.createImgFolder() 
         logger.info(f"pdf: {self.pdf_filename}图片文件夹创建成功")
         
-    def __exit__(self, exc_type, exc_val, exc_tb):
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.pdf.close()
         logger.info(f"pdf: {self.pdf_filename}关闭，计算结束")
         
@@ -85,3 +86,12 @@ class OpenPDF:
         except Exception as e: 
             logger.BUG(f"Error: {e}\n\t{self.pdf_filename}图片文件夹删除失败")
             raise e 
+        
+    def getPDFImgExtract(self) -> "PDFImgExtract": 
+        """返回提取图片的子类实例
+
+        Returns:
+            PDFImgExtract: 提取图片的子类实例
+        """
+        from .PDF_img_extract import PDFImgExtract
+        return PDFImgExtract(self)
