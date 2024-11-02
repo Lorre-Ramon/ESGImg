@@ -34,7 +34,11 @@ class PDFImage:
 
 class PDFImgExtract: 
     def __init__(self, pdf_instance:OpenPDF) -> None: 
-        """初始化PDFImgExtract类"""
+        """初始化PDFImgExtract类
+        
+        Args: 
+            pdf_instance (OpenPDF): 打开的PDF实例
+        """
         self.pdf:OpenPDF = pdf_instance
         
     def __post_init__(self) -> None: 
