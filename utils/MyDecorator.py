@@ -5,11 +5,13 @@ def getRunTime(function_name):
     def decorator(func):
         def wrapper(*args, **kwargs):
             import time
-            logger.info(f"BE:运行{function_name}函数")
+            logger.info(f"运行{function_name}函数")
+            print(f"运行{function_name}函数")
             start = time.time()
             result = func(*args, **kwargs)
             end = time.time()
-            logger.info(f"BE:{function_name}函数耗时: {end - start:.3f}秒")
+            logger.info(f"{function_name}函数耗时: {end - start:.3f}秒")
+            print(f"{function_name}函数耗时: {end - start:.3f}秒")
             
             #TODO: 测试平均时长，建立警告机制
             # if ((end - start) > 400) & (function_name == "获取SQL查询结果"): 
