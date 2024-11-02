@@ -45,9 +45,11 @@ if __name__ == "__main__":
     
     try:
         logger.info("程序开始")
+        print("程序开始")
         main(pdf_path)
     except Exception as e: 
         logger.error(f"Error: {e}")
         raise e
     finally:
         logger.info("程序结束")
+        print("程序结束")
