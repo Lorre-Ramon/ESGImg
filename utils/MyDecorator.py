@@ -3,11 +3,11 @@ import time
 import threading
 import sys
 
-def pending_animation(message = "Running"):
+def pending_animation(stop_event, message = "Running"):
 
     animation_chars = "|/-\\"
     i = 0
-    while True: 
+    while not stop_event.is_set(): 
         sys.stdout.write(f"\r{message} {animation_chars[i % len(animation_chars)]}")
         sys.stdout.flush()
         time.sleep(0.1)
@@ -21,7 +21,8 @@ def getRunTime(function_name):
             logger.info(f"运行{function_name}函数")
             
             # start pending_animation daemon thread
-            loader_thread = threading.Thread(target=pending_animation, args=(f"运行{function_name}中",))
+            stop_event = threading.Event()
+            loader_thread = threading.Thread(target=pending_animation, args=(stop_event, f"运行{function_name}中",))
             loader_thread.daemon = True  # 设置为守护线程
             loader_thread.start()
             
@@ -29,7 +30,15 @@ def getRunTime(function_name):
             
             try: 
                 result = func(*args, **kwargs)
+            except Exception as e:
+                logger.error(f"Error: {e}")
+                raise e
             finally:
+                # stop pending_animation thread
+                stop_event.set()
+                loader_thread.join() 
+                
+                # clear the pending_animation
                 sys.stdout.write("\r" + " " * 40 + "\r")
                 sys.stdout.flush()
                 
