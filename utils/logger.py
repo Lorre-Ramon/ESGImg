@@ -31,10 +31,3 @@ fh.setFormatter(formatter)
 # 将处理器添加到日志记录器
 logger.addHandler(ch)
 logger.addHandler(fh)
-
-# 创建一个过滤器，用于将特定的 INFO 级别日志信息也输出到控制台
-class InfoFilter(logging.Filter):
-    def filter(self, record):
-        return record.levelno == logging.INFO and 'BE:' in record.msg
-    
-ch.addFilter(InfoFilter())

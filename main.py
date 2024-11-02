@@ -10,7 +10,7 @@ def main(pdf_path:str) -> None:
     with OpenPDF(pdf_path, "test_set") as pdf: 
         extract_pdf_images(pdf)
 
-@getRunTime("提取PDF文件中的图片")
+@getRunTime("提取PDF文件图片")
 def extract_pdf_images(pdf:OpenPDF) -> None: 
     """提取PDF文件中的图片
 
