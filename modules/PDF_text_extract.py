@@ -45,7 +45,7 @@ class PDFTextExtract:
         """主函数"""
         pass 
     
-    def extractTextListInfo(self, page_num: int) -> List[float, float, float, float, str, Any, Any]: 
+    def extractTextListInfo(self, page_num: int) -> List[Tuple[float, float, float, float, str, Any, Any]]: 
         """提取PDF中某页的全部文本段信息
 
         Args:
@@ -56,21 +56,28 @@ class PDFTextExtract:
 
         Returns:
             List: 每个文本段的详细信息
-                List[0]: block_x0: 文本段左上角x坐标
-                List[1]: block_y0: 文本段左上角y坐标
-                List[2]: block_x1: 文本段右下角x坐标
-                List[3]: block_y1: 文本段右下角y坐标
-                List[4]: block_text: 文本段内容
-                List[5:]: 其他
+                List[n][0]: block_x0: 文本段左上角x坐标
+                List[n][1]: block_y0: 文本段左上角y坐标
+                List[n][2]: block_x1: 文本段右下角x坐标
+                List[n][3]: block_y1: 文本段右下角y坐标
+                List[n][4]: block_text: 文本段内容
+                List[n][5:]: 其他
         """
         try:
             page = self.pdf.pdf[page_num] 
             # retrieve the page's text in blocks
-            blocks = page.get_texttrace("blocks") #FIXME: 原本用的是get_text("blocks")
+            blocks = page.get_text("blocks") 
             return blocks
         except Exception as e: 
             logger.error(f"pdf: {self.pdf.pdf_filename} page: {page_num} 文本段提取失败")
             logger.error(e)
             raise e 
             return []
+        
+    def extractTextInfo(self, block:List): 
+        
+        match block: 
+            case _ if "<image:" in block[4]: 
+                logger.info(f"pdf: {self.pdf.pdf_filename} page: {block[0]} text: {block[4]}为图像信息块，忽略")
+            
         
