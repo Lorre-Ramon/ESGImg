@@ -3,7 +3,7 @@
         "detect_inverted_img": false,
         "img_height_threshold": 100,
         "successful_img_cnt_buffer": 5, 
-        "textblock_y_threshold": 11.5,
+        "textblock_y_threshold": 20,
         "header_footer_threshold": 100
     }
         

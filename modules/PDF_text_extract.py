@@ -45,7 +45,8 @@ class PDFTextExtract:
                 else:
                     x0, y0, x1, y1, text = self.extractTextInfo(block)
                      
-                y_close_enough = abs(y0 - y0_init) < self.textblock_y_threshold 
+                y_close_enough = abs(y1 - y1_init) < self.textblock_y_threshold 
+                # print(y_close_enough)
                 if y_close_enough: 
                     init_text += text.strip()
                     x1_init = max(x1, x1_init)

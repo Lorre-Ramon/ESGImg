@@ -8,7 +8,7 @@ def main(pdf_path:str) -> None:
     os.makedirs("output", exist_ok=True)
     
     with OpenPDF(pdf_path, "test_set") as pdf: 
-        # extract_images(pdf)
+        extract_images(pdf)
         extract_text(pdf)
 
 @getRunTime("提取PDF文件图片")
