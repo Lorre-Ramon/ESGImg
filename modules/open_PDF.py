@@ -94,3 +94,12 @@ class OpenPDF:
         """
         from .PDF_img_extract import PDFImgExtract
         return PDFImgExtract(self)
+    
+    def getPDFTextExtract(self) -> "PDFTextExtract": 
+        """返回提取文本的子类实例
+
+        Returns:
+            PDFTextExtract: 提取文本的子类实例
+        """
+        from .PDF_text_extract import PDFTextExtract
+        return PDFTextExtract(self)
