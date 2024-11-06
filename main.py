@@ -1,4 +1,4 @@
-from modules import OpenPDF, PDFImgExtract
+from modules import OpenPDF
 from utils import logger, getRunTime
 
 import os 

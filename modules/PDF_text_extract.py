@@ -1,10 +1,7 @@
 from utils import logger
 from modules import OpenPDF
 
-import os 
 import pandas as pd 
-import pymupdf
-import pdb 
 from typing import Tuple, List, Any
 
 import warnings 
@@ -17,17 +14,11 @@ class PDFTextExtract:
         Args:
             pdf_instance (OpenPDF): 打开的PDF实例
         """
-        self.pdf = pdf_instance
-        
-    def __post_init__(self) -> None:
-        """__init__函数的后处理函数"""
-        import json 
-        
-        with open('configs/global_configs.json', 'r') as f: 
-            configs = json.load(f)
+        self.pdf = pdf_instance 
             
-        self.textblock_y_threshold = configs['textblock_y_threshold']
-        self.header_footer_threshold = configs['header_footer_threshold']
+        self.textblock_y_threshold = self.pdf.global_config['textblock_y_threshold']
+        self.header_footer_threshold = self.pdf.global_config['header_footer_threshold']
+        
     def main(self) -> pd.DataFrame: 
         """主函数
         
@@ -40,6 +31,8 @@ class PDFTextExtract:
                
         for page_num in range(self.pdf.pdf_page_count):
             blocks = self.extractTextListInfo(page_num) 
+            if blocks == []:
+                continue
             
             page_height = self.pdf.pdf[page_num].rect.height
             
@@ -68,15 +61,17 @@ class PDFTextExtract:
             paragraphs.append(init_text.replace(" ", ""))
             coordinates.append(((x0_init + x1_init) / 2, (y0_init + y1_init) / 2))
             
-        # save the extracted text to a dataframe
-        index = 0
-        for para, coord in zip(paragraphs, coordinates): 
-            center_x, center_y = coord
-            if not self.isHeaderOrFooter(center_y, page_height): 
-                info = pd.Series(["", page_num+1, index, para, center_x, center_y], 
-                                 index=["PDF_name", "page", "p_index", 
-                                        "content", "center_x", "center_y"])
-                text_df = pd.concat([text_df, pd.DataFrame([info])], ignore_index=True)
+            # save the extracted text to a dataframe
+            index = 0
+            for para, coord in zip(paragraphs, coordinates): 
+                center_x, center_y = coord
+                if not self.isHeaderOrFooter(center_y, page_height): 
+                    info = pd.Series(["", page_num+1, index, para, center_x, center_y], 
+                                    index=["PDF_name", "page", "p_index", 
+                                            "content", "center_x", "center_y"])
+                    text_df = pd.concat([text_df, pd.DataFrame([info])], ignore_index=True)
+                
+                index += 1
         
         return text_df
     

@@ -22,7 +22,7 @@ def getRunTime(function_name):
             
             # start pending_animation daemon thread
             stop_event = threading.Event()
-            loader_thread = threading.Thread(target=pending_animation, args=(stop_event, f"运行{function_name}中",))
+            loader_thread = threading.Thread(target=pending_animation, args=(stop_event, f"{function_name}中",))
             loader_thread.daemon = True  # 设置为守护线程
             loader_thread.start()
             
