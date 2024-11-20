@@ -13,10 +13,10 @@ def main(pdf_path:str) -> None:
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf:OpenPDF) -> None: 
-    """提取PDF文件中的图片
+    """Extract images from PDF file | 提取PDF文件中的图片
 
     Args:
-        pdf (PDF_data): PDF_data数据类,正在读取的PDF文件   
+        pdf (OpenPDF): OpenPDF,the ongoing PDF file   
 
     Raises:
         e: Anomaly exception for debugging
@@ -35,14 +35,21 @@ def extract_images(pdf:OpenPDF) -> None:
         img_coords_df = pd.concat([img_coords_df, img_coords_df_temp], ignore_index=True)
         img_coords_df.to_excel(img_coords_df_filepath, index=False)
     except Exception as e: 
-        logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
+        logger.bug(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
     finally: 
         logger.info(f"pdf: {pdf.pdf_filename}完成提取图片")
         
 @getRunTime("提取PDF文件文本")
 def extract_text(pdf:OpenPDF) -> None: 
-    
+    """Extract text from PDF file | 提取PDF文件中的文本
+
+    Args:
+        pdf (OpenPDF): 正在读取的PDF文件   
+
+    Raises:
+        e: Anomaly exception for debugging
+    """
     text_coords_df_filepath = os.path.join("output", "text_coords.xlsx")
     if os.path.exists(text_coords_df_filepath): 
         text_coords_df = pd.read_excel(text_coords_df_filepath)
@@ -57,7 +64,7 @@ def extract_text(pdf:OpenPDF) -> None:
         text_coords_df = pd.concat([text_coords_df, text_coords_df_temp], ignore_index=True)
         text_coords_df.to_excel(text_coords_df_filepath, index=False) 
     except Exception as e: 
-        logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
+        logger.bug(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
     finally: 
         logger.info(f"pdf: {pdf.pdf_filename}完成提取文本")
