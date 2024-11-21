@@ -27,7 +27,7 @@ class OpenPDF:
         self.type:str = self.pdf_path.split("/")[1]
         self.thscode:str = self.pdf_path.split("/")[-1].split("-")[0]
         self.stock_name_cn:str = self.pdf_path.split("/")[-1].split("-")[1]
-        self.file_name_short:str = self.pdf_path.split("/")[-1].split("-")[2]
+        self.PDF_name:str = self.pdf_path.split("/")[-1].split("-")[2]
         
         self.pdf_filename:str = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
         
