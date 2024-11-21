@@ -99,6 +99,8 @@ class PDFImgExtract:
         if successful_img_cnt < len(self.pdf.pdf) + self.pdf.global_config["successful_img_cnt_buffer"]: 
             logger.warning(f"pdf: {self.pdf.file_name_short}提取图片数量过少, 数量: {successful_img_cnt}")
         
+        coords_df = self.tagOutput(coords_df)
+        
         return coords_df
         
     def extractImgInfoList(self, page_num:int)->List[Tuple[int,int,int,int,int,str,str,str,str,int]]: 
@@ -188,6 +190,33 @@ class PDFImgExtract:
         except Exception as e: 
             logger.error(f"pdf: {self.pdf.file_name_short}, page_num: {img.pdf_page}, img_index: {img.img_index}\
                         \n\t保存图片失败: {e}")
+            
+    def tagOutput(self, df_img:pd.DataFrame) -> pd.DataFrame: 
+        """标记输出信息
+
+        Args:
+            df_img (pd.DataFrame)
+
+        Returns:
+            pd.DataFrame: 标记后的输出信息
+        """
+        def extractPDFName(file_name):
+            PDF_name, _, _, _, _ = file_name.split('_')
+            return str(PDF_name) 
+        
+        def extractPageNum(file_name):
+            _, _, page, _, _ = file_name.split('_')
+            return int(page)
+
+        def extractImgIndex(file_name):
+            _, _, _, _, p_index = file_name.split('_')
+            return int(p_index[:-4])
+        
+        df_img["PDF_name"] = df_img["file_name"].apply(extractPDFName)
+        df_img["page"] = df_img["file_name"].apply(extractPageNum)
+        df_img["p_index"] = df_img["file_name"].apply(extractImgIndex)
+                
+        return df_img
                                 
 class PDFImageFeatureDetection: 
     def __init__(self, img:PDFImage)->None:
