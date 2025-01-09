@@ -1,5 +1,5 @@
 from modules import OpenPDF
-from utils import logger 
+from utils import logger
 
 import jiagu
 import json
@@ -23,15 +23,15 @@ from cn_clip.clip import load_from_name, available_models
 
 
 class PDFmatch:
-    def __init__(self, pdf_instance: OpenPDF, global_config_name:str) -> None:
+    def __init__(self, pdf_instance: OpenPDF, global_config_name: str) -> None:
         self.pdf: OpenPDF = pdf_instance
         self.global_config_name = global_config_name
-        
+
         with open("configs/global_configs.json", "r") as f:
             global_configs = json.load(f)
         self.global_config = global_configs[self.global_config_name]
 
-    def main(self) -> None: 
+    def main(self) -> None:
         pass
 
     def calculateCRI(self, df: pd.DataFrame) -> float:
@@ -84,7 +84,9 @@ class PDFmatch:
         text_x, text_y = text_cord
         return math.sqrt((img_x - text_x) ** 2 + (img_y - text_y) ** 2)
 
-    def calculateImgKeywordProbability(self, img_path:str, keywords:List[str]) -> tuple[List, str]:  
+    def calculateImgKeywordProbability(
+        self, img_path: str, keywords: List[str]
+    ) -> tuple[List, str]:
         """calculate the probability of the image and keywords in a page | 计算图片和当页关键词的概率
 
         Args:
@@ -97,36 +99,38 @@ class PDFmatch:
         Returns:
             tuple[List, str]: list of probabilities for keywords, image path | 关键词的概率列表和图片路径
         """
-        model, preprocess = load_from_name("RN50", device='cpu', download_root='./')
+        model, preprocess = load_from_name("RN50", device="cpu", download_root="./")
         model.eval()
-        
-        device = self.global_config['device']
+
+        device = self.global_config["device"]
         if (device == "mps") and (torch.backends.mps.is_available()):
             device = "mps"
         else:
             device = "cpu"
-        if (device =="cuda"): 
-            raise NotImplementedError("Cuda option not implemented") #TODO: enable cuda
-        
+        if device == "cuda":
+            raise NotImplementedError(
+                "Cuda option not implemented"
+            )  # TODO: enable cuda
+
         model = model.to(device)
-        image = preprocess(Image.open(img_path)).unsqueeze(0).to(device) 
+        image = preprocess(Image.open(img_path)).unsqueeze(0).to(device)
         label = clip.tokenize(keywords).to(device)
-        
-        with torch.no_grad(): 
+
+        with torch.no_grad():
             image_features = model.encode_image(image)
             text_features = model.encode_text(label)
             # 对特征进行归一化 | Normalize the features
             image_features /= image_features.norm(dim=-1, keepdim=True)
             text_features /= text_features.norm(dim=-1, keepdim=True)
-            
-            logits_per_image, logits_per_text = model.get_similarity(image,label)
+
+            logits_per_image, logits_per_text = model.get_similarity(image, label)
             probs = logits_per_image.softmax(dim=-1).cpu().numpy()
-            
+
         return probs, img_path
-                        
+
     def calculateWordSimiliarity(
         self, labels: List[str], probs, img_path: str, page: int
-    ) -> pd.Series|int:
+    ) -> pd.Series | int:
         """calculate the word similarity between the keywords and image | 计算文本和关键词之间的相似度
 
         Args:
@@ -169,7 +173,7 @@ class PDFmatch:
                 )
                 / (len([k for k in keywords if pd.notnull(k)]) if keywords else 1)
             )
-        else: 
+        else:
             logger.warning(f"pdf: {self.pdf.PDF_name} page: {page} has no text")
             return -1
 
@@ -204,7 +208,9 @@ class PDFmatch:
         keyword = []
 
         # page_rows:pd.DataFrame = self.df_text[self.df_text["PDF_name"] == pdf_name]["page"].unique() #XXX: Potential mistake version
-        page_rows = self.df_text[(self.df_text["PDF_name"] == pdf_name) & (self.df_text['page'] == page)] 
+        page_rows = self.df_text[
+            (self.df_text["PDF_name"] == pdf_name) & (self.df_text["page"] == page)
+        ]
 
         for idx, row in page_rows.iterrows():
             if pd.notna(
@@ -213,14 +219,16 @@ class PDFmatch:
                 keywords = self.extractKeywordsfromText(row["content"])
 
             self.df_text["keyword"] = self.df_text["keyword"].astype("object")
-            self.df_text.at[idx, "keyword"] = keywords 
+            self.df_text.at[idx, "keyword"] = keywords
 
             keywords_list.append(keywords)
             keyword = list(itertools.chain.from_iterable(keywords_list))
 
         return keyword
 
-    def extractKeywordsfromText(self, text: str, key_num: Optional[int] = None) -> List[str]:
+    def extractKeywordsfromText(
+        self, text: str, key_num: Optional[int] = None
+    ) -> List[str]:
         """extract keywords from text | 从文本中提取关键词
 
         Args:
@@ -237,7 +245,9 @@ class PDFmatch:
         keywords = jiagu.keywords(text_cleaned, key_num)
         return keywords
 
-    def matchTextImg(self, keywords:List[str], probs, img_path:str, PDF_name:str, page:int) -> Optional[str]:
+    def matchTextImg(
+        self, keywords: List[str], probs, img_path: str, PDF_name: str, page: int
+    ) -> Optional[str]:
         """match the text and image | 匹配文本和图片
 
         Args:
@@ -251,37 +261,54 @@ class PDFmatch:
             Optional[str]: matched text for given image | 给定图片的匹配文本
         """
         prob_dict = dict(zip(keywords, probs[0]))
-        filtered_df = self.df_text.loc[(self.df_text["PDF_name"] == self.pdf.PDF_name) & (self.df_text["page"] == page)]
+        filtered_df = self.df_text.loc[
+            (self.df_text["PDF_name"] == self.pdf.PDF_name)
+            & (self.df_text["page"] == page)
+        ]
         if not filtered_df.empty:
             filtered_df = filtered_df[pd.notnull(filtered_df["keyword"])]
-            
-            # create a new column to store the probability sum of the keywords | 创建一个新列来存储关键词的概率和
-            filtered_df["prob_sum"] = filtered_df["keyword"].apply( 
-                lambda keywords: sum(prob_dict.get(k, 0) for k in keywords if pd.notnull(k)) / 
-                                      (len([k for k in keywords if pd.notnull(k)]) if keywords else 1)
-            )
-            
-            # iterate through the column | 遍历列
-            filtered_df['prob_sum'] = filtered_df['prob_sum'].apply(lambda x: 0.0 if not isinstance(x, float) else x)
 
-            if not filtered_df['prob_sum'].empty:
-                max_prob_content = filtered_df.loc[filtered_df['prob_sum'].idxmax(), 'content']
-                max_prob = filtered_df['prob_sum'].max()
+            # create a new column to store the probability sum of the keywords | 创建一个新列来存储关键词的概率和
+            filtered_df["prob_sum"] = filtered_df["keyword"].apply(
+                lambda keywords: sum(
+                    prob_dict.get(k, 0) for k in keywords if pd.notnull(k)
+                )
+                / (len([k for k in keywords if pd.notnull(k)]) if keywords else 1)
+            )
+
+            # iterate through the column | 遍历列
+            filtered_df["prob_sum"] = filtered_df["prob_sum"].apply(
+                lambda x: 0.0 if not isinstance(x, float) else x
+            )
+
+            if not filtered_df["prob_sum"].empty:
+                max_prob_content = filtered_df.loc[
+                    filtered_df["prob_sum"].idxmax(), "content"
+                ]
+                max_prob = filtered_df["prob_sum"].max()
                 cri = self.calculateCRI(filtered_df)
-            else: # if prob_sum is empty | 如果 prob_sum 列为空
-                max_prob_content = None 
+            else:  # if prob_sum is empty | 如果 prob_sum 列为空
+                max_prob_content = None
                 max_prob = None
                 cri = None
-                
+
             # record the matched text | 记录匹配的文本
             img_name = os.path.basename(img_path)
-            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text"] = max_prob_content
-            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_prob"] = max_prob
-            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_CRI"] = cri
-            
-            return max_prob_content 
+            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text"] = (
+                max_prob_content
+            )
+            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_prob"] = (
+                max_prob
+            )
+            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_CRI"] = (
+                cri
+            )
 
-    def readData(self, text_coords_df_filepath: str, img_coords_df_filepath: str) -> None:
+            return max_prob_content
+
+    def readData(
+        self, text_coords_df_filepath: str, img_coords_df_filepath: str
+    ) -> None:
         """read the DataFrame with text and image information | 读入包含文本和图片信息的DataFrame
 
         Args:
