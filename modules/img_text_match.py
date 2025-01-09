@@ -124,7 +124,6 @@ class PDFmatch:
             
         return probs, img_path
                         
-
     def calculateWordSimiliarity(
         self, labels: List[str], probs, img_path: str, page: int
     ) -> pd.Series|int:
@@ -238,15 +237,21 @@ class PDFmatch:
         keywords = jiagu.keywords(text_cleaned, key_num)
         return keywords
 
-    def readData(self, text_filepath: str, img_filepath: str) -> None:
+    def matchTextImg(self, labels:List[str], probs, page:int) -> Any:
+        
+        prob_dict = dict(zip(labels, probs[0]))
+        
+
+
+    def readData(self, text_coords_df_filepath: str, img_coords_df_filepath: str) -> None:
         """read the DataFrame with text and image information | 读入包含文本和图片信息的DataFrame
 
         Args:
-            text_filepath (str): 文本文件路径
-            img_filepath (str): 图片文件路径
+            text_coords_df_filepath (str): 文本文件路径
+            img_coords_df_filepath (str): 图片文件路径
         """
-        df_text = pd.read_excel(text_filepath)
-        df_img = pd.read_excel(img_filepath)
+        df_text = pd.read_excel(text_coords_df_filepath)
+        df_img = pd.read_excel(img_coords_df_filepath)
         df_img = df_img.drop_duplicates(subset="file_name")
 
         self.df_text = df_text
