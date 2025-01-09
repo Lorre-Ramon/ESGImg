@@ -237,11 +237,38 @@ class PDFmatch:
         keywords = jiagu.keywords(text_cleaned, key_num)
         return keywords
 
-    def matchTextImg(self, labels:List[str], probs, page:int) -> Any:
+    def matchTextImg(self, labels:List[str], probs, img_path:str, PDF_name:str, page:int) -> Any:
         
         prob_dict = dict(zip(labels, probs[0]))
-        
+        filtered_df = self.df_text.loc[(self.df_text["PDF_name"] == self.pdf.PDF_name) & (self.df_text["page"] == page)]
+        if not filtered_df.empty:
+            filtered_df = filtered_df[pd.notnull(filtered_df["keyword"])]
+            
+            # create a new column to store the probability sum of the keywords | 创建一个新列来存储关键词的概率和
+            filtered_df["prob_sum"] = filtered_df["keyword"].apply( 
+                lambda keywords: sum(prob_dict.get(k, 0) for k in keywords if pd.notnull(k)) / 
+                                      (len([k for k in keywords if pd.notnull(k)]) if keywords else 1)
+            )
+            
+            # iterate through the column | 遍历列
+            filtered_df['prob_sum'] = filtered_df['prob_sum'].apply(lambda x: 0.0 if not isinstance(x, float) else x)
 
+            if not filtered_df['prob_sum'].empty:
+                max_prob_content = filtered_df.loc[filtered_df['prob_sum'].idxmax(), 'content']
+                max_prob = filtered_df['prob_sum'].max()
+                cri = self.calculateCRI(filtered_df)
+            else:
+            # 如果 prob_sum 列为空
+                max_prob_content = None  # 或任何合适的默认值
+                max_prob = None
+                cri = None
+                
+            img_name = os.path.basename(img_path)
+            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text"] = max_prob_content
+            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_prob"] = max_prob
+            self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_CRI"] = cri
+            
+            return max_prob_content 
 
     def readData(self, text_coords_df_filepath: str, img_coords_df_filepath: str) -> None:
         """read the DataFrame with text and image information | 读入包含文本和图片信息的DataFrame
