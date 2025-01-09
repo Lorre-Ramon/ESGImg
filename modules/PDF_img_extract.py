@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd 
 import pymupdf 
 from skimage import feature, color, exposure 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from dataclasses import dataclass
 
 import warnings
@@ -22,15 +22,15 @@ class PDFImage:
     img_folderpath: str
     img_filename: str
     img_info: Tuple[int,int,int,int,int,str,str,str,str,int]
-    img_bytes: bytes = None 
-    img_xref: str = None 
-    base_img: dict = None 
-    img_lazy_open: Image.Image = None 
-    x0: int = None 
-    y0: int = None 
-    x1: int = None 
-    y1: int = None 
-    center_coord: Tuple[int,int] = None 
+    img_bytes: Optional[bytes] = None 
+    img_xref: Optional[str] = None 
+    base_img: Optional[dict] = None 
+    img_lazy_open: Optional[Image.Image] = None 
+    x0: Optional[int] = None 
+    y0: Optional[int] = None 
+    x1: Optional[int] = None 
+    y1: Optional[int] = None 
+    center_coord: Optional[Tuple[int,int]] = None 
 
 class PDFImgExtract: 
     def __init__(self, pdf_instance:OpenPDF) -> None: 
