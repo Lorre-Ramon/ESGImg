@@ -41,7 +41,7 @@ class OpenPDF:
         logger.info(f"pdf: {self.pdf_filename}打开成功")
         self.pdf_page_count = self.pdf.page_count
         
-        self.img_folder_path = self.createImgFolder() 
+        self.img_folder_path = self.createImgFolder() # 创建图片文件夹，返回路径 | create image folder, return path
         logger.info(f"pdf: {self.pdf_filename}图片文件夹创建成功")
         
         return self
@@ -66,7 +66,7 @@ class OpenPDF:
             os.makedirs(folder_path, exist_ok=True)
             return folder_path
         except Exception as e: 
-            logger.BUG(f"Error: {e}\n\tpdf: {self.pdf_filename}取消创建图片文件夹")
+            logger.error(f"Error: {e}\n\tpdf: {self.pdf_filename}取消创建图片文件夹")
             raise e
             # return ""
         
@@ -83,7 +83,7 @@ class OpenPDF:
             else:
                 logger.error(f"{self.pdf_filename}图片文件夹不存在")
         except Exception as e: 
-            logger.BUG(f"Error: {e}\n\t{self.pdf_filename}图片文件夹删除失败")
+            logger.error(f"Error: {e}\n\t{self.pdf_filename}图片文件夹删除失败")
             raise e 
         
     def getPDFImgExtract(self) -> "PDFImgExtract": 
