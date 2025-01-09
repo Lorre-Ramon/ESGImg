@@ -237,9 +237,20 @@ class PDFmatch:
         keywords = jiagu.keywords(text_cleaned, key_num)
         return keywords
 
-    def matchTextImg(self, labels:List[str], probs, img_path:str, PDF_name:str, page:int) -> Any:
-        
-        prob_dict = dict(zip(labels, probs[0]))
+    def matchTextImg(self, keywords:List[str], probs, img_path:str, PDF_name:str, page:int) -> Optional[str]:
+        """match the text and image | 匹配文本和图片
+
+        Args:
+            keywords (List[str]): list of keywords | 关键词列表
+            probs (_type_): list of probabilities for keywords | 关键词的概率列表
+            img_path (str): image path | 图片路径
+            PDF_name (str): PDF name | PDF名称
+            page (int): current processing page number (for this image) | 当前处理的页码（对于此图片）
+
+        Returns:
+            Optional[str]: matched text for given image | 给定图片的匹配文本
+        """
+        prob_dict = dict(zip(keywords, probs[0]))
         filtered_df = self.df_text.loc[(self.df_text["PDF_name"] == self.pdf.PDF_name) & (self.df_text["page"] == page)]
         if not filtered_df.empty:
             filtered_df = filtered_df[pd.notnull(filtered_df["keyword"])]
@@ -257,12 +268,12 @@ class PDFmatch:
                 max_prob_content = filtered_df.loc[filtered_df['prob_sum'].idxmax(), 'content']
                 max_prob = filtered_df['prob_sum'].max()
                 cri = self.calculateCRI(filtered_df)
-            else:
-            # 如果 prob_sum 列为空
-                max_prob_content = None  # 或任何合适的默认值
+            else: # if prob_sum is empty | 如果 prob_sum 列为空
+                max_prob_content = None 
                 max_prob = None
                 cri = None
                 
+            # record the matched text | 记录匹配的文本
             img_name = os.path.basename(img_path)
             self.df_img.loc[self.df_img["file_name"] == img_name, "match_text"] = max_prob_content
             self.df_img.loc[self.df_img["file_name"] == img_name, "match_text_prob"] = max_prob
