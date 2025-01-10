@@ -72,11 +72,11 @@ class PDFMatch:
                 
             # match the text and image | 匹配文本和图片
             object_text = self.matchTextImg(keywords, probs, img_path, page)
-            print(object_text)
+            # print(object_text)
             if object_text is not None:
                 # get the text coordinates | 获取文本坐标
                 text_cord_list = self.df_text.loc[
-                    (self.df_text["PDF_name"] == self.pdf.PDF_name)
+                    (self.df_text["PDF_name"] == self.pdf.pdf_filename)
                     & (self.df_text["page"] == page)
                     & (self.df_text["content"] == object_text)
                 ][['center_x', 'center_y']].values.tolist()
@@ -93,8 +93,8 @@ class PDFMatch:
                 dist = self.calculateDistance(img_cord, text_cord) 
                 self.df_img.loc[self.df_img["file_name"] == img_name, "distance"] = dist
             else: 
-                logger.info(f"pdf: {self.pdf.PDF_name} page: {page} has no object text")
-                # raise ValueError(f"pdf: {self.pdf.PDF_name} page: {page} has no object text") 
+                logger.info(f"pdf: {self.pdf.pdf_filename} page: {page} has no object text")
+                
                 
         return self.df_img
 
@@ -218,7 +218,7 @@ class PDFMatch:
 
         # access the text coordinates | 访问文本坐标
         df_min_dis = self.df_text.loc[
-            (self.df_text["PDF_name"] == self.pdf.PDF_name)
+            (self.df_text["PDF_name"] == self.pdf.pdf_filename)
             & (self.df_text["page"] == page)
         ]
         if not df_min_dis.empty:
@@ -238,7 +238,7 @@ class PDFMatch:
                 / (len([k for k in keywords if pd.notnull(k)]) if keywords else 1)
             )
         else:
-            logger.warning(f"pdf: {self.pdf.PDF_name} page: {page} has no text")
+            logger.warning(f"pdf: {self.pdf.pdf_filename} page: {page} has no text")
             return -1
 
     def extractKeywordsfromPDF(self) -> pd.DataFrame:
