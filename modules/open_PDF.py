@@ -50,7 +50,7 @@ class OpenPDF:
         self.pdf.close()
         logger.info(f"pdf: {self.pdf_filename}关闭，计算结束")
         
-        self.deleteImgFolder(self.img_folder_path)
+        # self.deleteImgFolder(self.img_folder_path) #TODO: uncomment this line after debugging
         
     def createImgFolder(self) -> str: 
         """创建图片文件夹
@@ -103,3 +103,12 @@ class OpenPDF:
         """
         from .PDF_text_extract import PDFTextExtract
         return PDFTextExtract(self)
+    
+    def getPDFmatch(self) -> "PDFmatch": 
+        """返回匹配的子类实例
+
+        Returns:
+            PDFMatch: 匹配的子类实例
+        """
+        from .img_text_match import PDFMatch
+        return PDFMatch(self, "test")

@@ -22,7 +22,7 @@ from cn_clip.clip import load_from_name, available_models
 # print("Available models:", available_models())
 
 
-class PDFmatch:
+class PDFMatch:
     def __init__(self, pdf_instance: OpenPDF, global_config_name: str) -> None:
         self.pdf: OpenPDF = pdf_instance
         self.global_config_name = global_config_name
@@ -31,8 +31,67 @@ class PDFmatch:
             global_configs = json.load(f)
         self.global_config = global_configs[self.global_config_name]
 
-    def main(self) -> None:
-        pass
+    def main(self) -> pd.DataFrame:
+        """main function to match the text and image | 匹配文本和图片的主函数
+
+        Raises:
+            ValueError: raise error if no object text | 如果没有对象文本，则引发错误
+
+        Returns:
+            pd.DataFrame: DataFrame for image and matched text | 图像和匹配文本的DataFrame
+        """
+        df_key = self.extractKeywordsfromPDF()
+        for row in self.df_img.loc[
+            self.df_img["PDF_name"] == self.pdf.PDF_name
+        ].itertuples():
+            img_name = row.file_name
+            page = row.page
+            p_index = row.p_index
+            img_cord = row.centre_coordinate
+
+            # read in image | 读入图片
+            img_path = os.path.join(str(self.pdf.img_folder_path), str(img_name))
+            # read in keywords | 读入关键词
+            [keywords] = list(
+                df_key.loc[
+                    (df_key["file_name"] == self.pdf.pdf_filename)
+                    & (df_key["page"] == page)
+                ]["keywords"]
+            )
+            
+            # calculate the probability of the image and keywords | 计算图片和关键词的概率
+            probs= self.calculateImgKeywordProbability(img_path, keywords)
+            
+            ws = self.calculateWordSimiliarity(keywords, probs, img_path, page)
+            if isinstance(ws, pd.Series): 
+                [ws] = list(ws) 
+            self.df_img.loc[self.df_img["file_name"] == img_name, "word_simi"] = ws
+                
+            # match the text and image | 匹配文本和图片
+            object_text = self.matchTextImg(keywords, probs, img_path, self.pdf.PDF_name, page)
+            if object_text is not None:
+                # get the text coordinates | 获取文本坐标
+                text_cord_list = self.df_text.loc[
+                    (self.df_text["PDF_name"] == self.pdf.PDF_name)
+                    & (self.df_text["page"] == page)
+                    & (self.df_text["content"] == object_text)
+                ][['center_x', 'center_y']].values.tolist()
+                
+                if text_cord_list: 
+                    text_cord = text_cord_list[0]
+                else: 
+                    [text_cord] = text_cord_list
+                
+                # calculate the distance between the image and text | 计算图片和文本之间的距离
+                if isinstance(img_cord, str): 
+                    img_cord:tuple = ast.literal_eval(img_cord) 
+                    
+                dist = self.calculateDistance(img_cord, text_cord) 
+                self.df_img.loc[self.df_img["file_name"] == img_name, "distance"] = dist
+            else: 
+                raise ValueError(f"pdf: {self.pdf.PDF_name} page: {page} has no object text") # TODO: perhaps change to logger.error
+                
+        return self.df_img
 
     def calculateCRI(self, df: pd.DataFrame) -> float:
         """calculate the composite reliability index CRI | 计算复合可靠性指数
@@ -86,7 +145,7 @@ class PDFmatch:
 
     def calculateImgKeywordProbability(
         self, img_path: str, keywords: List[str]
-    ) -> tuple[List, str]:
+    ) -> List:
         """calculate the probability of the image and keywords in a page | 计算图片和当页关键词的概率
 
         Args:
@@ -97,7 +156,7 @@ class PDFmatch:
             NotImplementedError: unrealized cuda option | 未实现的cuda选项
 
         Returns:
-            tuple[List, str]: list of probabilities for keywords, image path | 关键词的概率列表和图片路径
+            List: list of probabilities for keywords | 关键词的概率列表
         """
         model, preprocess = load_from_name("RN50", device="cpu", download_root="./")
         model.eval()
@@ -126,7 +185,7 @@ class PDFmatch:
             logits_per_image, logits_per_text = model.get_similarity(image, label)
             probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
-        return probs, img_path
+        return probs
 
     def calculateWordSimiliarity(
         self, labels: List[str], probs, img_path: str, page: int
