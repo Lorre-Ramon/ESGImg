@@ -95,6 +95,11 @@ class PDFMatch:
             else: 
                 logger.info(f"pdf: {self.pdf.pdf_filename} page: {page} has no object text")
                 
+        # add keys | 添加键
+        self.df_img["year"] = self.pdf.year 
+        self.df_img["type"] = self.pdf.type
+        self.df_img["thscode"] = self.pdf.thscode
+        self.df_img["pdf_filename"] = self.pdf.pdf_filename
                 
         return self.df_img
 
