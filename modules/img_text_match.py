@@ -71,7 +71,7 @@ class PDFMatch:
             self.df_img.loc[self.df_img["file_name"] == img_name, "word_simi"] = ws
                 
             # match the text and image | 匹配文本和图片
-            object_text = self.matchTextImg(keywords, probs, img_path, self.pdf.PDF_name, page)
+            object_text = self.matchTextImg(keywords, probs, img_path, page)
             print(object_text)
             if object_text is not None:
                 # get the text coordinates | 获取文本坐标
@@ -311,15 +311,14 @@ class PDFMatch:
         return keywords
 
     def matchTextImg(
-        self, keywords: List[str], probs, img_path: str, PDF_name: str, page: int
-    ) -> Optional[str]:
+        self, keywords: List[str], probs, img_path: str, page: int
+    ) -> Optional[str]: #FIX: unable to yield correct output
         """match the text and image | 匹配文本和图片
 
         Args:
             keywords (List[str]): list of keywords | 关键词列表
             probs (_type_): list of probabilities for keywords | 关键词的概率列表
             img_path (str): image path | 图片路径
-            PDF_name (str): PDF name | PDF名称
             page (int): current processing page number (for this image) | 当前处理的页码（对于此图片）
 
         Returns:
@@ -327,7 +326,7 @@ class PDFMatch:
         """
         prob_dict = dict(zip(keywords, probs[0]))
         filtered_df = self.df_text.loc[
-            (self.df_text["PDF_name"] == self.pdf.PDF_name)
+            (self.df_text["PDF_name"] == self.pdf.pdf_filename)
             & (self.df_text["page"] == page)
         ]
         if not filtered_df.empty:

@@ -10,12 +10,12 @@ def main(pdf_path: str) -> None:
 
     with OpenPDF(pdf_path, "test_set") as pdf:
         # extract_images(pdf)
-        # extract_text(pdf)
+        extract_text(pdf)
         
-        pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx")
-        pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx")
+        # pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx")
+        # pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx")
     
-        match_img_text(pdf)
+        # match_img_text(pdf)
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:

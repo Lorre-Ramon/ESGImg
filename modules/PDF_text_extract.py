@@ -25,11 +25,12 @@ class PDFTextExtract:
         Returns:
             pd.DataFrame: 提取的PDF文本信息
         """
-        paragraphs:List[str] = []
-        coordinates:List[Tuple[float, float]] = []
-        text_df:pd.DataFrame = pd.DataFrame(columns=["PDF_name", "page", "p_index", "content", "center_x", "center_y"])
-               
+                       
         for page_num in range(self.pdf.pdf_page_count):
+            paragraphs:List[str] = []
+            coordinates:List[Tuple[float, float]] = []
+            text_df:pd.DataFrame = pd.DataFrame(columns=["PDF_name", "page", "p_index", "content", "center_x", "center_y"])
+
             blocks = self.extractTextListInfo(page_num) 
             if blocks == []:
                 continue
