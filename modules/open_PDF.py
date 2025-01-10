@@ -104,11 +104,14 @@ class OpenPDF:
         from .PDF_text_extract import PDFTextExtract
         return PDFTextExtract(self)
     
-    def getPDFmatch(self) -> "PDFmatch": 
+    def getPDFmatch(self, global_config_name:str) -> "PDFmatch": 
         """返回匹配的子类实例
+
+        Args:
+            global_config_name (str): 全局配置名称
 
         Returns:
             PDFMatch: 匹配的子类实例
         """
         from .img_text_match import PDFMatch
-        return PDFMatch(self, "test")
+        return PDFMatch(self, global_config_name)

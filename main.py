@@ -113,7 +113,7 @@ def match_img_text(pdf: OpenPDF) -> None:
         )
         
     try: 
-        pdf_match_img_text = pdf.getPDFmatch()
+        pdf_match_img_text = pdf.getPDFmatch("test_set")
         logger.info(f"pdf: {pdf.pdf_filename}开始匹配图片和文本")
         distance_df_temp = pdf_match_img_text.main()
         distance_df = pd.concat([distance_df, distance_df_temp], ignore_index=True)
