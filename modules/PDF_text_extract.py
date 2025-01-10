@@ -2,7 +2,7 @@ from utils import logger
 from modules import OpenPDF
 
 import pandas as pd 
-from typing import Tuple, List, Any
+from typing import Tuple, List, Any, Optional
 
 import warnings 
 warnings.filterwarnings("ignore")
@@ -67,7 +67,7 @@ class PDFTextExtract:
             for para, coord in zip(paragraphs, coordinates): 
                 center_x, center_y = coord
                 if not self.isHeaderOrFooter(center_y, page_height): 
-                    info = pd.Series(["", page_num+1, index, para, center_x, center_y], 
+                    info = pd.Series([self.pdf.pdf_filename, page_num+1, index, para, center_x, center_y], 
                                     index=["PDF_name", "page", "p_index", 
                                             "content", "center_x", "center_y"])
                     text_df = pd.concat([text_df, pd.DataFrame([info])], ignore_index=True)
@@ -76,7 +76,7 @@ class PDFTextExtract:
         
         return text_df
     
-    def extractTextListInfo(self, page_num: int) -> List[Tuple[float, float, float, float, str, Any, Any]]: 
+    def extractTextListInfo(self, page_num: int) -> Tuple[float, float, float, float, str, Any, Any]: 
         """提取PDF中某页的全部文本段信息
 
         Args:
@@ -103,9 +103,9 @@ class PDFTextExtract:
             logger.error(f"pdf: {self.pdf.pdf_filename} page: {page_num} 文本段提取失败")
             logger.error(e)
             raise e 
-            return []
+            return ()
         
-    def extractTextInfo(self, block:List) -> List[Tuple[float,float,float,float,str]]: 
+    def extractTextInfo(self, block:List) -> Optional[Tuple[float,float,float,float,str]]: 
         """提取PDF单个文本段的信息
 
         Args:

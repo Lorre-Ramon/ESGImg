@@ -9,9 +9,13 @@ def main(pdf_path: str) -> None:
     os.makedirs("output", exist_ok=True)
 
     with OpenPDF(pdf_path, "test_set") as pdf:
-        extract_images(pdf)
+        # extract_images(pdf)
         extract_text(pdf)
-        match_img_text(pdf)
+        
+        # pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx")
+        # pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx")
+    
+        # match_img_text(pdf)
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:
@@ -24,6 +28,7 @@ def extract_images(pdf: OpenPDF) -> None:
         e: Anomaly exception for debugging
     """
     img_coords_df_filepath = os.path.join("output", "img_coords.xlsx")
+    pdf.img_coords_df_filepath = img_coords_df_filepath
     if os.path.exists(img_coords_df_filepath):
         img_coords_df = pd.read_excel(img_coords_df_filepath)
     else:
@@ -57,6 +62,7 @@ def extract_text(pdf: OpenPDF) -> None:
         e: Anomaly exception for debugging
     """
     text_coords_df_filepath = os.path.join("output", "text_coords.xlsx")
+    pdf.text_coords_df_filepath = text_coords_df_filepath
     if os.path.exists(text_coords_df_filepath):
         text_coords_df = pd.read_excel(text_coords_df_filepath)
     else:
@@ -73,7 +79,7 @@ def extract_text(pdf: OpenPDF) -> None:
         )
         text_coords_df.to_excel(text_coords_df_filepath, index=False)
     except Exception as e:
-        logger.bug(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
+        logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成提取文本")
@@ -90,6 +96,7 @@ def match_img_text(pdf: OpenPDF) -> None:
         e: Anomaly exception for debugging | 异常以进行调试
     """
     distance_df_filepath = os.path.join("output", "distance.xlsx")
+    pdf.distance_df_filepath = distance_df_filepath
     if os.path.exists(distance_df_filepath):
         distance_df = pd.read_excel(distance_df_filepath)
     else:

@@ -5,11 +5,15 @@ import json
 import pymupdf
 import shutil
 from dataclasses import dataclass
+from typing import Optional
 
 @dataclass
 class OpenPDF: 
     pdf_path: str 
     global_config_name:str
+    img_coords_df_filepath: Optional[str] = None
+    text_coords_df_filepath: Optional[str] = None
+    distance_df_filepath: Optional[str] = None 
     
     def __post_init__(self)->None: 
         """__init__函数的后处理函数"""

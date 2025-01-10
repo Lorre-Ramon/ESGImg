@@ -40,6 +40,9 @@ class PDFMatch:
         Returns:
             pd.DataFrame: DataFrame for image and matched text | 图像和匹配文本的DataFrame
         """
+        
+        self.readData(self.pdf.text_coords_df_filepath, self.pdf.img_coords_df_filepath)
+        
         df_key = self.extractKeywordsfromPDF()
         for row in self.df_img.loc[
             self.df_img["PDF_name"] == self.pdf.PDF_name
@@ -89,7 +92,8 @@ class PDFMatch:
                 dist = self.calculateDistance(img_cord, text_cord) 
                 self.df_img.loc[self.df_img["file_name"] == img_name, "distance"] = dist
             else: 
-                raise ValueError(f"pdf: {self.pdf.PDF_name} page: {page} has no object text") # TODO: perhaps change to logger.error
+                logger.info(f"pdf: {self.pdf.PDF_name} page: {page} has no object text")
+                # raise ValueError(f"pdf: {self.pdf.PDF_name} page: {page} has no object text") 
                 
         return self.df_img
 
@@ -366,20 +370,23 @@ class PDFMatch:
             return max_prob_content
 
     def readData(
-        self, text_coords_df_filepath: str, img_coords_df_filepath: str
+        self, text_coords_df_filepath: str|None, img_coords_df_filepath: str|None
     ) -> None:
         """read the DataFrame with text and image information | 读入包含文本和图片信息的DataFrame
 
         Args:
-            text_coords_df_filepath (str): 文本文件路径
-            img_coords_df_filepath (str): 图片文件路径
+            text_coords_df_filepath (str|None): 文本文件路径
+            img_coords_df_filepath (str|None): 图片文件路径
         """
-        df_text = pd.read_excel(text_coords_df_filepath)
-        df_img = pd.read_excel(img_coords_df_filepath)
-        df_img = df_img.drop_duplicates(subset="file_name")
+        if isinstance(text_coords_df_filepath, str) and isinstance(img_coords_df_filepath, str):
+            df_text = pd.read_excel(text_coords_df_filepath)
+            df_img = pd.read_excel(img_coords_df_filepath)
+            df_img = df_img.drop_duplicates(subset="file_name")
 
-        self.df_text = df_text
-        self.df_img = df_img
+            self.df_text = df_text
+            self.df_img = df_img
+        else:
+            raise ValueError("text_coords_df_filepath and img_coords_df_filepath are both not str")
 
     def removeSymbol(self, text: str) -> str:
         """remove the punctuation and spaces in text | 去除文本中的符号标点和空格
