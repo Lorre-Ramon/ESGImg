@@ -21,6 +21,7 @@ def main(
         pdf_path_list_masked = [pdf_path for pdf_path in pdf_path_list if os.path.basename(pdf_path).split("-")[2] not in file_mask]
     
     for pdf_path in pdf_path_list_masked[:batch_size]:
+        print(f"Processing {os.path.basename(pdf_path)}")
         with OpenPDF(pdf_path, "test_set") as pdf:
             if pdf.mkt != "HK": # do not process HK PDFs | 不处理港股PDF
                 extract_images(pdf)
@@ -109,7 +110,7 @@ def getPathBundle(path:str) -> List[str]:
     files = [f for f in os.listdir(path) if f.endswith(".pdf")]
     return [os.path.join(path, f) for f in files]
 
-@getRunTime("匹配PDF文件图片和文本")
+@getRunTime("匹配PDF文件图文")
 def match_img_text(pdf: OpenPDF) -> None:
     """Match images and text in PDF file | 匹配PDF文件中的图片和文本
 

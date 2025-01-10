@@ -390,7 +390,7 @@ class PDFMatch:
             df_img = df_img.drop_duplicates(subset="file_name")
 
             self.df_text = df_text
-            self.df_img = df_img
+            self.df_img = df_img.loc[df_img["PDF_name"] == self.pdf.PDF_name]
             self.df_text["keyword"] = None 
         else:
             raise ValueError("text_coords_df_filepath and img_coords_df_filepath are both not str")
