@@ -4,3 +4,4 @@ output/
 .VSCodeCounter/
 .gitignore
 archive/
+clip_cn_rn50.pt
