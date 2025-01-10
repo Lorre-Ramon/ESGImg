@@ -72,6 +72,7 @@ class PDFMatch:
                 
             # match the text and image | 匹配文本和图片
             object_text = self.matchTextImg(keywords, probs, img_path, self.pdf.PDF_name, page)
+            print(object_text)
             if object_text is not None:
                 # get the text coordinates | 获取文本坐标
                 text_cord_list = self.df_text.loc[
@@ -251,7 +252,7 @@ class PDFMatch:
 
         key = []
         for page in range(len(pdf_file)):
-            keywords = self.extractKeywordsfromPage(self.pdf.PDF_name, page + 1)
+            keywords = self.extractKeywordsfromPage(pdf_name, page + 1)
             key.append({"file_name": pdf_name, "page": page + 1, "keywords": keywords})
 
         df_key = pd.DataFrame(key)
@@ -278,9 +279,10 @@ class PDFMatch:
         for idx, row in page_rows.iterrows():
             if pd.notna(
                 row["content"]
-            ):  # FIXME: old version: if not pd.isna(row["content"]):
+            ):  
                 keywords = self.extractKeywordsfromText(row["content"])
 
+            self.df_text["keyword"] = None 
             self.df_text["keyword"] = self.df_text["keyword"].astype("object")
             self.df_text.at[idx, "keyword"] = keywords
 
