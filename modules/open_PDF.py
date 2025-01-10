@@ -27,11 +27,12 @@ class OpenPDF:
         
     def getBasicInfo(self) -> None: 
         """获取PDF文件的基本信息"""
-        self.year:int = int(self.pdf_path.split("/")[2])
+        self.year:int = int(os.path.basename(self.pdf_path).split("-")[-1][:4])
         self.type:str = self.pdf_path.split("/")[1]
-        self.thscode:str = self.pdf_path.split("/")[-1].split("-")[0]
-        self.stock_name_cn:str = self.pdf_path.split("/")[-1].split("-")[1]
-        self.PDF_name:str = self.pdf_path.split("/")[-1].split("-")[2]
+        self.thscode:str = os.path.basename(self.pdf_path).split("-")[0]
+        self.mkt:str = self.thscode[:2]
+        self.stock_name_cn:str = os.path.basename(self.pdf_path).split("-")[1]
+        self.PDF_name:str = os.path.basename(self.pdf_path).split("-")[2]
         
         self.pdf_filename:str = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
         
@@ -54,7 +55,7 @@ class OpenPDF:
         self.pdf.close()
         logger.info(f"pdf: {self.pdf_filename}关闭，计算结束")
         
-        # self.deleteImgFolder(self.img_folder_path) #TODO: uncomment this line after debugging
+        self.deleteImgFolder(self.img_folder_path) 
         
     def createImgFolder(self) -> str: 
         """创建图片文件夹

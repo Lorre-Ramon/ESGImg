@@ -3,19 +3,33 @@ from utils import logger, getRunTime
 
 import os
 import pandas as pd
+from typing import List
 
 
-def main(pdf_path: str) -> None:
+def main(  
+         batch_size:int, 
+         pdf_path_list: List[str]
+        ) -> None:
     os.makedirs("output", exist_ok=True)
-
-    with OpenPDF(pdf_path, "test_set") as pdf:
-        # extract_images(pdf)
-        # extract_text(pdf)
-        
-        pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx")
-        pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx")
+    # pdf_name_list = [os.path.basename(pdf_path).split("-")[2] for pdf_path in pdf_path_list]
     
-        match_img_text(pdf)
+    # remove PDFs that have been processed
+    pdf_path_list_masked = pdf_path_list[:batch_size]
+    if os.path.exists("output/distance.xlsx"):
+        df_dist = pd.read_excel("output/distance.xlsx")
+        file_mask = [df_dist["PDF_name"].unique()]
+        pdf_path_list_masked = [pdf_path for pdf_path in pdf_path_list if os.path.basename(pdf_path).split("-")[2] not in file_mask]
+    
+    for pdf_path in pdf_path_list_masked[:batch_size]:
+        with OpenPDF(pdf_path, "test_set") as pdf:
+            if pdf.mkt != "HK": # do not process HK PDFs | 不处理港股PDF
+                extract_images(pdf)
+                extract_text(pdf)
+                
+                # pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx") # for debug
+                # pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx") # for debug
+            
+                match_img_text(pdf)
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:
@@ -50,7 +64,6 @@ def extract_images(pdf: OpenPDF) -> None:
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成提取图片")
 
-
 @getRunTime("提取PDF文件文本")
 def extract_text(pdf: OpenPDF) -> None:
     """Extract text from PDF file | 提取PDF文件中的文本
@@ -84,6 +97,17 @@ def extract_text(pdf: OpenPDF) -> None:
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成提取文本")
 
+def getPathBundle(path:str) -> List[str]: 
+    """获取路径下所有PDF文件
+
+    Args:
+        path (str): 文件夹路径
+
+    Returns:
+        List[str]: PDF文件路径列表
+    """
+    files = [f for f in os.listdir(path) if f.endswith(".pdf")]
+    return [os.path.join(path, f) for f in files]
 
 @getRunTime("匹配PDF文件图片和文本")
 def match_img_text(pdf: OpenPDF) -> None:
@@ -139,7 +163,8 @@ if __name__ == "__main__":
     try:
         logger.info("程序开始")
         print("程序开始")
-        main(pdf_path)
+        pdf_path_list = getPathBundle("data/SUS/2023")
+        main(2,pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
