@@ -282,7 +282,7 @@ class PDFMatch:
             ):  
                 keywords = self.extractKeywordsfromText(row["content"])
 
-            self.df_text["keyword"] = None 
+            
             self.df_text["keyword"] = self.df_text["keyword"].astype("object")
             self.df_text.at[idx, "keyword"] = keywords
 
@@ -386,6 +386,7 @@ class PDFMatch:
 
             self.df_text = df_text
             self.df_img = df_img
+            self.df_text["keyword"] = None 
         else:
             raise ValueError("text_coords_df_filepath and img_coords_df_filepath are both not str")
 
