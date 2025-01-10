@@ -1,6 +1,7 @@
 from utils import logger
 from modules import OpenPDF
 
+import re
 import pandas as pd 
 from typing import Tuple, List, Any, Optional
 
@@ -41,10 +42,13 @@ class PDFTextExtract:
             x0_init, y0_init, x1_init, y1_init = blocks[0][:4]
             
             for block in blocks: 
-                if self.extractTextInfo(block) is None: 
+                if (self.extractTextInfo(block) is None): 
                     continue
                 else:
                     x0, y0, x1, y1, text = self.extractTextInfo(block)
+                
+                if self.isSymbolOrNumber(text):
+                    continue
                      
                 y_close_enough = abs(y1 - y1_init) < self.textblock_y_threshold 
                 # print(y_close_enough)
@@ -145,3 +149,18 @@ class PDFTextExtract:
                 return True
             case _: 
                 return False
+            
+    def isSymbolOrNumber(self, text:str) -> bool:
+        """判断文本是否为数字
+
+        Args:
+            text (str): 文本
+
+        Returns:
+            bool: True为数字，False为非数字
+        """
+        # 匹配仅包含数字、符号、空白字符的字符串
+        pattern = r"^[\s\d,;:()\-+/*%&!|.]*$"
+        
+        # 返回是否匹配
+        return bool(re.match(pattern, text))
