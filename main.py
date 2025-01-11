@@ -37,6 +37,9 @@ def main(
                 # pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx") # for debug
             
                 match_img_text(pdf)
+            else:
+                logger.info(f"pdf: {pdf.pdf_filename}为港股PDF，跳过")
+                print(f"{pdf.pdf_filename} is a HK PDF, skip")
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:

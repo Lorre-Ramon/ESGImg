@@ -30,7 +30,7 @@ class OpenPDF:
         self.year:int = int(self.pdf_path.split("/")[2])
         self.type:str = self.pdf_path.split("/")[1]
         self.thscode:str = os.path.basename(self.pdf_path).split("-")[0]
-        self.mkt:str = self.thscode[:2]
+        self.mkt:str = self.thscode[-2:]
         self.stock_name_cn:str = os.path.basename(self.pdf_path).split("-")[1]
         self.PDF_name:str = os.path.basename(self.pdf_path).split("-")[2]
         
