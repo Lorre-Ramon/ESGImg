@@ -80,7 +80,7 @@ class PDFTextExtract:
                 
                 index += 1
         
-        return text_df
+        return text_df.dropna(subset=["content"])
     
     def extractTextListInfo(self, page_num: int) -> Tuple[float, float, float, float, str, Any, Any]: 
         """提取PDF中某页的全部文本段信息
