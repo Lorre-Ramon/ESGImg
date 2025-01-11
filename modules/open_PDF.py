@@ -27,7 +27,7 @@ class OpenPDF:
         
     def getBasicInfo(self) -> None: 
         """获取PDF文件的基本信息"""
-        self.year:int = int(os.path.basename(self.pdf_path).split("-")[-1][:4])
+        self.year:int = int(self.pdf_path.split("/")[2])
         self.type:str = self.pdf_path.split("/")[1]
         self.thscode:str = os.path.basename(self.pdf_path).split("-")[0]
         self.mkt:str = self.thscode[:2]

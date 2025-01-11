@@ -156,15 +156,17 @@ def match_img_text(pdf: OpenPDF) -> None:
         logger.info(f"pdf: {pdf.pdf_filename}完成匹配图片和文本")
 
 if __name__ == "__main__":
-    # pdf_path = (
-    #     "data/SUS/2022/00941.HK-中国移动-中国移动 2022年度可持续发展报告-2023-03-24.pdf"
-    # ) # test_path
+    """test_path
+    pdf_path = (
+         "data/SUS/2022/00941.HK-中国移动-中国移动 2022年度可持续发展报告-2023-03-24.pdf"
+    ) 
+    """
 
     try:
         logger.info("程序开始")
         print("程序开始")
         pdf_path_list = getPathBundle("data/SUS/2023")
-        main(20,pdf_path_list)
+        main(10,pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e

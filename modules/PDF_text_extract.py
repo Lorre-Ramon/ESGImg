@@ -49,6 +49,9 @@ class PDFTextExtract:
                 
                 if self.isSymbolOrNumber(text):
                     continue
+                
+                if text is None: 
+                    continue
                      
                 y_close_enough = abs(y1 - y1_init) < self.textblock_y_threshold 
                 # print(y_close_enough)
@@ -80,7 +83,9 @@ class PDFTextExtract:
                 
                 index += 1
         
-        return text_df.dropna(subset=["content"])
+        text_df.dropna(subset=["content"], inplace=True)
+        
+        return text_df
     
     def extractTextListInfo(self, page_num: int) -> Tuple[float, float, float, float, str, Any, Any]: 
         """提取PDF中某页的全部文本段信息

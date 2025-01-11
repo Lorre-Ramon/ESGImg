@@ -387,7 +387,9 @@ class PDFMatch:
         if isinstance(text_coords_df_filepath, str) and isinstance(img_coords_df_filepath, str):
             df_text = pd.read_excel(text_coords_df_filepath)
             df_img = pd.read_excel(img_coords_df_filepath)
+            
             df_img = df_img.drop_duplicates(subset="file_name")
+            df_text = df_text.dropna(subset=["content"])
 
             self.df_text = df_text
             self.df_img = df_img.loc[df_img["PDF_name"] == self.pdf.PDF_name]
