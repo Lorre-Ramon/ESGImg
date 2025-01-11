@@ -5,7 +5,6 @@ import os
 import pandas as pd
 from typing import List
 
-
 def main(  
          batch_size:int, 
          pdf_path_list: List[str]
