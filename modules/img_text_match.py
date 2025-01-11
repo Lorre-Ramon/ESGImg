@@ -288,11 +288,11 @@ class PDFMatch:
                 keywords = self.extractKeywordsfromText(row["content"])
 
             
-            self.df_text["keyword"] = self.df_text["keyword"].astype("object")
-            self.df_text.at[idx, "keyword"] = keywords
+                self.df_text["keyword"] = self.df_text["keyword"].astype("object")
+                self.df_text.at[idx, "keyword"] = keywords
 
-            keywords_list.append(keywords)
-            keyword = list(itertools.chain.from_iterable(keywords_list))
+                keywords_list.append(keywords)
+                keyword = list(itertools.chain.from_iterable(keywords_list))
 
         return keyword
 

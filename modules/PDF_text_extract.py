@@ -71,6 +71,7 @@ class PDFTextExtract:
             index = 0
             for para, coord in zip(paragraphs, coordinates): 
                 center_x, center_y = coord
+                para = self.removeIllegalChars(para)
                 if not self.isHeaderOrFooter(center_y, page_height): 
                     info = pd.Series([self.pdf.pdf_filename, page_num+1, index, para, center_x, center_y], 
                                     index=["PDF_name", "page", "p_index", 
@@ -164,3 +165,15 @@ class PDFTextExtract:
         
         # 返回是否匹配
         return bool(re.match(pattern, text))
+    
+    def removeIllegalChars(self, text:str) -> str: 
+        """移除文本中的非法字符
+
+        Args:
+            text (str): 文本
+
+        Returns:
+            str: 移除非法字符后的文本
+        """
+        # 移除非法字符
+        return re.sub(r"[^a-zA-Z0-9\u4e00-\u9fa5\s]", "", text)
