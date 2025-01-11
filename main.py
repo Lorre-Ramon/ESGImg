@@ -44,9 +44,9 @@ def main(batch_size: int, pdf_path_list: List[str]) -> None:
                     print(f"{pdf.pdf_filename} is a HK PDF, skip")
         except Exception as e:
             logger.error(
-                f"pdf: {os.path.basename(pdf_path).split('-')[2]} has Error: {e}"
+                f"\nBad PDF file, pdf: {os.path.basename(pdf_path).split('-')[2]} has Error: {e}"
             )
-            print(f"Error: {e}")
+            print(f"\nBad PDF file, Error: {e}")
             os.rename(
                 pdf_path,
                 os.path.join(
