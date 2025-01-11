@@ -43,8 +43,8 @@ def getRunTime(function_name):
                 sys.stdout.flush()
                 
             end = time.time()
-            logger.info(f"{function_name}函数耗时: {end - start:.3f}秒")
-            print(f"{function_name}函数耗时: {end - start:.3f}秒")
+            logger.info(f"{function_name}函数耗时: {end - start:3.3f}秒")
+            print(f"{function_name}函数耗时: {end - start:3.3f}秒")
             
             #TODO: 测试平均时长，建立警告机制
             # if ((end - start) > 400) & (function_name == "获取SQL查询结果"): 

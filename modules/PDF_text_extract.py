@@ -1,8 +1,9 @@
 from utils import logger
 from modules import OpenPDF
 
+import re
 import pandas as pd 
-from typing import Tuple, List, Any
+from typing import Tuple, List, Any, Optional
 
 import warnings 
 warnings.filterwarnings("ignore")
@@ -25,11 +26,12 @@ class PDFTextExtract:
         Returns:
             pd.DataFrame: 提取的PDF文本信息
         """
-        paragraphs:List[str] = []
-        coordinates:List[Tuple[float, float]] = []
         text_df:pd.DataFrame = pd.DataFrame(columns=["PDF_name", "page", "p_index", "content", "center_x", "center_y"])
-               
+                       
         for page_num in range(self.pdf.pdf_page_count):
+            paragraphs:List[str] = []
+            coordinates:List[Tuple[float, float]] = []
+            
             blocks = self.extractTextListInfo(page_num) 
             if blocks == []:
                 continue
@@ -40,10 +42,16 @@ class PDFTextExtract:
             x0_init, y0_init, x1_init, y1_init = blocks[0][:4]
             
             for block in blocks: 
-                if self.extractTextInfo(block) is None: 
+                if (self.extractTextInfo(block) is None): 
                     continue
                 else:
                     x0, y0, x1, y1, text = self.extractTextInfo(block)
+                
+                if self.isSymbolOrNumber(text):
+                    continue
+                
+                if text is None: 
+                    continue
                      
                 y_close_enough = abs(y1 - y1_init) < self.textblock_y_threshold 
                 # print(y_close_enough)
@@ -66,17 +74,20 @@ class PDFTextExtract:
             index = 0
             for para, coord in zip(paragraphs, coordinates): 
                 center_x, center_y = coord
+                para = self.removeIllegalChars(para)
                 if not self.isHeaderOrFooter(center_y, page_height): 
-                    info = pd.Series(["", page_num+1, index, para, center_x, center_y], 
+                    info = pd.Series([self.pdf.pdf_filename, page_num+1, index, para, center_x, center_y], 
                                     index=["PDF_name", "page", "p_index", 
                                             "content", "center_x", "center_y"])
                     text_df = pd.concat([text_df, pd.DataFrame([info])], ignore_index=True)
                 
                 index += 1
         
+        text_df.dropna(subset=["content"], inplace=True)
+        
         return text_df
     
-    def extractTextListInfo(self, page_num: int) -> List[Tuple[float, float, float, float, str, Any, Any]]: 
+    def extractTextListInfo(self, page_num: int) -> Tuple[float, float, float, float, str, Any, Any]: 
         """提取PDF中某页的全部文本段信息
 
         Args:
@@ -103,9 +114,9 @@ class PDFTextExtract:
             logger.error(f"pdf: {self.pdf.pdf_filename} page: {page_num} 文本段提取失败")
             logger.error(e)
             raise e 
-            return []
+            return ()
         
-    def extractTextInfo(self, block:List) -> List[Tuple[float,float,float,float,str]]: 
+    def extractTextInfo(self, block:List) -> Optional[Tuple[float,float,float,float,str]]: 
         """提取PDF单个文本段的信息
 
         Args:
@@ -144,3 +155,32 @@ class PDFTextExtract:
                 return True
             case _: 
                 return False
+            
+    def isSymbolOrNumber(self, text:str) -> bool:
+        """判断文本是否为数字
+
+        Args:
+            text (str): 文本
+
+        Returns:
+            bool: True为数字，False为非数字
+        """
+        # 匹配仅包含数字、符号、空白字符的字符串
+        pattern = r"^[\s\d,;:()\-+/*%&!|.]*$"
+        
+        # 返回是否匹配
+        return bool(re.match(pattern, text))
+    
+    def removeIllegalChars(self, text:str) -> str: 
+        """移除文本中的非法字符
+
+        Args:
+            text (str): 文本
+
+        Returns:
+            str: 移除非法字符后的文本
+        """
+        # 移除非法字符
+        text = re.sub(r"[^a-zA-Z0-9\u4e00-\u9fa5\s]", "", text)
+        text = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', text)
+        return text
