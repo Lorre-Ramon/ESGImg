@@ -172,7 +172,7 @@ if __name__ == "__main__":
         logger.info("程序开始")
         print("程序开始")
         pdf_path_list = getPathBundle("data/SUS/2023")
-        main(10,pdf_path_list)
+        main(20,pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
