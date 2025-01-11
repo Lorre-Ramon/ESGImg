@@ -21,8 +21,9 @@ def main(
         pdf_path_list_masked = [pdf_path for pdf_path in pdf_path_list if os.path.basename(pdf_path).split("-")[2] not in file_mask]
     
     if len(pdf_path_list_masked) < batch_size:
-        logger.info("Last batch of PDFs")
+        print("Last batch of PDFs")
     else: 
+        print(f"{len(pdf_path_list_masked)} PDFs left")
         pdf_path_list_masked = pdf_path_list_masked[:batch_size]
     
     for pdf_path in pdf_path_list_masked:
