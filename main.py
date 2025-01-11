@@ -20,7 +20,12 @@ def main(
         file_mask = df_dist["PDF_name"].unique().tolist()
         pdf_path_list_masked = [pdf_path for pdf_path in pdf_path_list if os.path.basename(pdf_path).split("-")[2] not in file_mask]
     
-    for pdf_path in pdf_path_list_masked[:batch_size]:
+    if len(pdf_path_list_masked) < batch_size:
+        logger.info("Last batch of PDFs")
+    else: 
+        pdf_path_list_masked = pdf_path_list_masked[:batch_size]
+    
+    for pdf_path in pdf_path_list_masked:
         print(f"Processing {os.path.basename(pdf_path)}")
         with OpenPDF(pdf_path, "test_set") as pdf:
             if pdf.mkt != "HK": # do not process HK PDFs | 不处理港股PDF
