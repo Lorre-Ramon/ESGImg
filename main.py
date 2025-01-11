@@ -94,7 +94,6 @@ def extract_text(pdf: OpenPDF) -> None:
         text_coords_df.to_excel(text_coords_df_filepath, index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
-        raise e
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成提取文本")
 

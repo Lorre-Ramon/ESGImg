@@ -409,4 +409,4 @@ class PDFMatch:
         )  # remove all punctuation
         text = re.sub(r"\s+", "", text)  # remove all white spaces
 
-        return text
+        return text.replace("\n", "").replace(" ", "")
