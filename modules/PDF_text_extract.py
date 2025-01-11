@@ -176,4 +176,6 @@ class PDFTextExtract:
             str: 移除非法字符后的文本
         """
         # 移除非法字符
-        return re.sub(r"[^a-zA-Z0-9\u4e00-\u9fa5\s]", "", text)
+        text = re.sub(r"[^a-zA-Z0-9\u4e00-\u9fa5\s]", "", text)
+        text = re.sub(r'[\x00-\x1F\x7F-\x9F]', '', text)
+        return text
