@@ -31,17 +31,34 @@ def main(batch_size: int, pdf_path_list: List[str]) -> None:
         print(f"Processing {os.path.basename(pdf_path)}")
         try:
             with OpenPDF(pdf_path, "test_set") as pdf:
-                if pdf.mkt != "HK":  # do not process HK PDFs | 不处理港股PDF
-                    extract_images(pdf)
-                    extract_text(pdf)
+                match pdf:
+                    case _ if pdf.mkt == "HK":
+                        logger.info(f"pdf: {pdf.pdf_filename}为港股PDF，跳过")
+                        print(f"{pdf.pdf_filename} is a HK PDF, skip")
+                        os.rename(
+                            pdf_path,
+                            os.path.join(
+                                os.path.dirname(pdf_path),
+                                "error file",
+                                os.path.basename(pdf_path),
+                            ),
+                        )
+                    case _ if "英文" in pdf.PDF_name:
+                        logger.info(f"pdf: {pdf.pdf_filename}为英文PDF，跳过")
+                        print(f"{pdf.pdf_filename} is an English PDF, skip")
+                        os.rename(
+                            pdf_path,
+                            os.path.join(
+                                os.path.dirname(pdf_path),
+                                "error file",
+                                os.path.basename(pdf_path),
+                            ),
+                        )
+                    case _:
+                        extract_images(pdf)
+                        extract_text(pdf)
+                        match_img_text(pdf)
 
-                    # pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx") # for debug
-                    # pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx") # for debug
-
-                    match_img_text(pdf)
-                else:
-                    logger.info(f"pdf: {pdf.pdf_filename}为港股PDF，跳过")
-                    print(f"{pdf.pdf_filename} is a HK PDF, skip")
         except Exception as e:
             logger.error(
                 f"\nBad PDF file, pdf: {os.path.basename(pdf_path).split('-')[2]} has Error: {e}"
@@ -50,7 +67,9 @@ def main(batch_size: int, pdf_path_list: List[str]) -> None:
             os.rename(
                 pdf_path,
                 os.path.join(
-                    os.path.dirname(pdf_path), "error file", os.path.basename(pdf_path)
+                    os.path.dirname(pdf_path), 
+                    "error file", 
+                    os.path.basename(pdf_path)
                 ),
             )
             continue
@@ -193,9 +212,9 @@ if __name__ == "__main__":
     try:
         logger.info("程序开始")
         print("程序开始")
-        pdf_path_list = getPathBundle("data/SUS/2023")
+        pdf_path_list = getPathBundle("data/ESG/2023")
         # pdf_path_list = getPathBundle('data/SUS/2023/error file')
-        main(20, pdf_path_list)
+        main(100, pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
