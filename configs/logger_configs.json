@@ -1,4 +1,0 @@
-{ 
-    "logger_name": "test",
-    "log_filepath": "log/dev_log.log"
-}
