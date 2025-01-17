@@ -5,40 +5,75 @@ import os
 import pandas as pd
 from typing import List
 
-def main(  
-         batch_size:int, 
-         pdf_path_list: List[str]
-        ) -> None:
+
+def main(batch_size: int, pdf_path_list: List[str]) -> None:
     os.makedirs("output", exist_ok=True)
     # pdf_name_list = [os.path.basename(pdf_path).split("-")[2] for pdf_path in pdf_path_list]
-    
+
     # remove PDFs that have been processed
     pdf_path_list_masked = pdf_path_list[:batch_size]
     if os.path.exists("output/distance.xlsx"):
         df_dist = pd.read_excel("output/distance.xlsx")
         file_mask = df_dist["PDF_name"].unique().tolist()
-        pdf_path_list_masked = [pdf_path for pdf_path in pdf_path_list if os.path.basename(pdf_path).split("-")[2] not in file_mask]
-    
+        pdf_path_list_masked = [
+            pdf_path
+            for pdf_path in pdf_path_list
+            if os.path.basename(pdf_path).split("-")[2] not in file_mask
+        ]
+
     if len(pdf_path_list_masked) < batch_size:
         print("Last batch of PDFs")
-    else: 
+    else:
         print(f"{len(pdf_path_list_masked)} PDFs left")
         pdf_path_list_masked = pdf_path_list_masked[:batch_size]
-    
+
     for pdf_path in pdf_path_list_masked:
         print(f"Processing {os.path.basename(pdf_path)}")
-        with OpenPDF(pdf_path, "test_set") as pdf:
-            if pdf.mkt != "HK": # do not process HK PDFs | 不处理港股PDF
-                extract_images(pdf)
-                extract_text(pdf)
-                
-                # pdf.img_coords_df_filepath = os.path.join("output", "img_coords.xlsx") # for debug
-                # pdf.text_coords_df_filepath = os.path.join("output", "text_coords.xlsx") # for debug
-            
-                match_img_text(pdf)
-            else:
-                logger.info(f"pdf: {pdf.pdf_filename}为港股PDF，跳过")
-                print(f"{pdf.pdf_filename} is a HK PDF, skip")
+        try:
+            with OpenPDF(pdf_path, "test_set") as pdf:
+                match pdf:
+                    case _ if pdf.mkt == "HK":
+                        logger.info(f"pdf: {pdf.pdf_filename}为港股PDF，跳过")
+                        print(f"{pdf.pdf_filename} is a HK PDF, skip")
+                        os.rename(
+                            pdf_path,
+                            os.path.join(
+                                os.path.dirname(pdf_path),
+                                "error file",
+                                os.path.basename(pdf_path),
+                            ),
+                        )
+                    case _ if "英文" in pdf.PDF_name:
+                        logger.info(f"pdf: {pdf.pdf_filename}为英文PDF，跳过")
+                        print(f"{pdf.pdf_filename} is an English PDF, skip")
+                        os.rename(
+                            pdf_path,
+                            os.path.join(
+                                os.path.dirname(pdf_path),
+                                "error file",
+                                os.path.basename(pdf_path),
+                            ),
+                        )
+                    case _:
+                        extract_images(pdf)
+                        extract_text(pdf)
+                        match_img_text(pdf)
+
+        except Exception as e:
+            logger.error(
+                f"\nBad PDF file, pdf: {os.path.basename(pdf_path).split('-')[2]} has Error: {e}"
+            )
+            print(f"\nBad PDF file, Error: {e}")
+            os.rename(
+                pdf_path,
+                os.path.join(
+                    os.path.dirname(pdf_path), 
+                    "error file", 
+                    os.path.basename(pdf_path)
+                ),
+            )
+            continue
+
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:
@@ -73,6 +108,7 @@ def extract_images(pdf: OpenPDF) -> None:
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成提取图片")
 
+
 @getRunTime("提取PDF文件文本")
 def extract_text(pdf: OpenPDF) -> None:
     """Extract text from PDF file | 提取PDF文件中的文本
@@ -105,7 +141,8 @@ def extract_text(pdf: OpenPDF) -> None:
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成提取文本")
 
-def getPathBundle(path:str) -> List[str]: 
+
+def getPathBundle(path: str) -> List[str]:
     """获取路径下所有PDF文件
 
     Args:
@@ -116,6 +153,7 @@ def getPathBundle(path:str) -> List[str]:
     """
     files = [f for f in os.listdir(path) if f.endswith(".pdf")]
     return [os.path.join(path, f) for f in files]
+
 
 @getRunTime("匹配PDF文件图文")
 def match_img_text(pdf: OpenPDF) -> None:
@@ -150,18 +188,19 @@ def match_img_text(pdf: OpenPDF) -> None:
                 "distance",
             ]
         )
-        
-    try: 
+
+    try:
         pdf_match_img_text = pdf.getPDFmatch("test_set")
         logger.info(f"pdf: {pdf.pdf_filename}开始匹配图片和文本")
         distance_df_temp = pdf_match_img_text.main()
         distance_df = pd.concat([distance_df, distance_df_temp], ignore_index=True)
         distance_df.to_excel(distance_df_filepath, index=False)
-    except Exception as e: 
+    except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
     finally:
         logger.info(f"pdf: {pdf.pdf_filename}完成匹配图片和文本")
+
 
 if __name__ == "__main__":
     """test_path
@@ -173,8 +212,9 @@ if __name__ == "__main__":
     try:
         logger.info("程序开始")
         print("程序开始")
-        pdf_path_list = getPathBundle("data/SUS/2023")
-        main(20,pdf_path_list)
+        pdf_path_list = getPathBundle("data/ESG/2023")
+        # pdf_path_list = getPathBundle('data/SUS/2023/error file')
+        main(100, pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
