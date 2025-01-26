@@ -124,7 +124,7 @@ def extract_images(pdf: OpenPDF) -> None:
             [img_coords_df, img_coords_df_temp], ignore_index=True
         )
         img_coords_df.to_excel(img_coords_df_filepath, index=False)
-        img_coords_df.to_excel(os.path.join("output", "backup", os.path.basename(img_coords_df_filepath)), index=False)
+        # img_coords_df.to_excel(os.path.join("output", "backup", os.path.basename(img_coords_df_filepath)), index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
@@ -159,7 +159,7 @@ def extract_text(pdf: OpenPDF) -> None:
             [text_coords_df, text_coords_df_temp], ignore_index=True
         )
         text_coords_df.to_excel(text_coords_df_filepath, index=False)
-        text_coords_df.to_excel(os.path.join("output", "backup", os.path.basename(text_coords_df_filepath)), index=False)
+        # text_coords_df.to_excel(os.path.join("output", "backup", os.path.basename(text_coords_df_filepath)), index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
     finally:
@@ -219,7 +219,7 @@ def match_img_text(pdf: OpenPDF) -> None:
         distance_df_temp = pdf_match_img_text.main()
         distance_df = pd.concat([distance_df, distance_df_temp], ignore_index=True)
         distance_df.to_excel(distance_df_filepath, index=False)
-        distance_df.to_excel(os.path.join("output", "backup", os.path.basename(distance_df_filepath)), index=False)
+        # distance_df.to_excel(os.path.join("output", "backup", os.path.basename(distance_df_filepath)), index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
