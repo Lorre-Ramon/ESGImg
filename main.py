@@ -5,14 +5,37 @@ import os
 import pandas as pd
 from typing import List
 
+def getBackUpCopy(source_filepath:str) -> None: 
+    """Create a backup copy of the source file | 创建源文件备份
+
+    Args:
+        source_filepath (str): The path of the source file | 源文件路径
+    """
+    from datetime import datetime
+    import shutil
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    try:
+        os.makedirs('output/backup', exist_ok=True)
+        shutil.copy(source_filepath, 
+                    f"output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
+        logger.info(f"{os.path.basename(source_filepath)}.xlsx，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
+        print(f"{os.path.basename(source_filepath)}.xlsx，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
+    except Exception as e:
+        logger.error(f"Error: {e}")
 
 def main(batch_size: int, pdf_path_list: List[str]) -> None:
+    
     os.makedirs("output", exist_ok=True)
     # pdf_name_list = [os.path.basename(pdf_path).split("-")[2] for pdf_path in pdf_path_list]
 
     # remove PDFs that have been processed
     pdf_path_list_masked = pdf_path_list[:batch_size]
     if os.path.exists("output/distance.xlsx"):
+        # save a copy for backup 
+        # getBackUpCopy("output/distance.xlsx")
+        # getBackUpCopy("output/img_coords.xlsx")
+        # getBackUpCopy("output/text_coords.xlsx")
+        
         df_dist = pd.read_excel("output/distance.xlsx")
         file_mask = df_dist["PDF_name"].unique().tolist()
         pdf_path_list_masked = [
@@ -74,7 +97,6 @@ def main(batch_size: int, pdf_path_list: List[str]) -> None:
             )
             continue
 
-
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:
     """Extract images from PDF file | 提取PDF文件中的图片
@@ -102,6 +124,7 @@ def extract_images(pdf: OpenPDF) -> None:
             [img_coords_df, img_coords_df_temp], ignore_index=True
         )
         img_coords_df.to_excel(img_coords_df_filepath, index=False)
+        img_coords_df.to_excel(os.path.join("output", "backup", os.path.basename(img_coords_df_filepath)), index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
@@ -136,6 +159,7 @@ def extract_text(pdf: OpenPDF) -> None:
             [text_coords_df, text_coords_df_temp], ignore_index=True
         )
         text_coords_df.to_excel(text_coords_df_filepath, index=False)
+        text_coords_df.to_excel(os.path.join("output", "backup", os.path.basename(text_coords_df_filepath)), index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
     finally:
@@ -195,6 +219,7 @@ def match_img_text(pdf: OpenPDF) -> None:
         distance_df_temp = pdf_match_img_text.main()
         distance_df = pd.concat([distance_df, distance_df_temp], ignore_index=True)
         distance_df.to_excel(distance_df_filepath, index=False)
+        distance_df.to_excel(os.path.join("output", "backup", os.path.basename(distance_df_filepath)), index=False)
     except Exception as e:
         logger.error(f"Error: pdf: {pdf.pdf_filename}\n\t{e}")
         raise e
@@ -209,15 +234,18 @@ if __name__ == "__main__":
     ) 
     """
 
-    try:
+    try: 
         logger.info("程序开始")
         print("程序开始")
-        pdf_path_list = getPathBundle("data/ESG/2023")
+        pdf_path_list = getPathBundle("data/SUS/2023")
+        # pdf_path_list = getPathBundle('data/SUS/2022')
         # pdf_path_list = getPathBundle('data/SUS/2023/error file')
-        main(100, pdf_path_list)
+        main(50, pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
     finally:
-        logger.info("程序结束")
+        logger.info("程序结束") 
         print("程序结束")
+        
+    
