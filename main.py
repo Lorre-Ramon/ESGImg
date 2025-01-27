@@ -5,37 +5,20 @@ import os
 import pandas as pd
 from typing import List
 
-def getBackUpCopy(source_filepath:str) -> None: 
-    """Create a backup copy of the source file | 创建源文件备份
 
-    Args:
-        source_filepath (str): The path of the source file | 源文件路径
-    """
-    from datetime import datetime
-    import shutil
-    timestamp = datetime.now().strftime("%Y%m%d_%H")
-    try:
-        os.makedirs('output/backup', exist_ok=True)
-        shutil.copy(source_filepath, 
-                    f"output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
-        logger.info(f"{os.path.basename(source_filepath)}，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
-        print(f"{os.path.basename(source_filepath)}，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
-    except Exception as e:
-        logger.error(f"Error: {e}")
 
 def main(batch_size: int, pdf_path_list: List[str]) -> None:
-    
     os.makedirs("output", exist_ok=True)
     # pdf_name_list = [os.path.basename(pdf_path).split("-")[2] for pdf_path in pdf_path_list]
 
     # remove PDFs that have been processed
     pdf_path_list_masked = pdf_path_list[:batch_size]
     if os.path.exists("output/distance.xlsx"):
-        # save a copy for backup 
+        # save a copy for backup
         getBackUpCopy("output/distance.xlsx")
         getBackUpCopy("output/img_coords.xlsx")
         getBackUpCopy("output/text_coords.xlsx")
-        
+
         df_dist = pd.read_excel("output/distance.xlsx")
         file_mask = df_dist["PDF_name"].unique().tolist()
         pdf_path_list_masked = [
@@ -90,12 +73,11 @@ def main(batch_size: int, pdf_path_list: List[str]) -> None:
             os.rename(
                 pdf_path,
                 os.path.join(
-                    os.path.dirname(pdf_path), 
-                    "error file", 
-                    os.path.basename(pdf_path)
+                    os.path.dirname(pdf_path), "error file", os.path.basename(pdf_path)
                 ),
             )
             continue
+
 
 @getRunTime("提取PDF文件图片")
 def extract_images(pdf: OpenPDF) -> None:
@@ -178,6 +160,30 @@ def getPathBundle(path: str) -> List[str]:
     files = [f for f in os.listdir(path) if f.endswith(".pdf")]
     return [os.path.join(path, f) for f in files]
 
+def getBackUpCopy(source_filepath: str) -> None:
+    """Create a backup copy of the source file | 创建源文件备份
+
+    Args:
+        source_filepath (str): The path of the source file | 源文件路径
+    """
+    from datetime import datetime
+    import shutil
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H")
+    try:
+        os.makedirs("output/backup", exist_ok=True)
+        shutil.copy(
+            source_filepath,
+            f"output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx",
+        )
+        logger.info(
+            f"{os.path.basename(source_filepath)}，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx"
+        )
+        print(
+            f"{os.path.basename(source_filepath)}，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx"
+        )
+    except Exception as e:
+        logger.error(f"Error: {e}")
 
 @getRunTime("匹配PDF文件图文")
 def match_img_text(pdf: OpenPDF) -> None:
@@ -234,7 +240,7 @@ if __name__ == "__main__":
     ) 
     """
 
-    try: 
+    try:
         logger.info("程序开始")
         print("程序开始")
         pdf_path_list = getPathBundle("data/SUS/2023")
@@ -245,7 +251,5 @@ if __name__ == "__main__":
         logger.error(f"Error: {e}")
         raise e
     finally:
-        logger.info("程序结束") 
+        logger.info("程序结束")
         print("程序结束")
-        
-    
