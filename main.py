@@ -13,13 +13,13 @@ def getBackUpCopy(source_filepath:str) -> None:
     """
     from datetime import datetime
     import shutil
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d_%H")
     try:
         os.makedirs('output/backup', exist_ok=True)
         shutil.copy(source_filepath, 
                     f"output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
-        logger.info(f"{os.path.basename(source_filepath)}.xlsx，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
-        print(f"{os.path.basename(source_filepath)}.xlsx，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
+        logger.info(f"{os.path.basename(source_filepath)}，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
+        print(f"{os.path.basename(source_filepath)}，已备份为output/backup/{os.path.basename(source_filepath)}_{timestamp}.xlsx")
     except Exception as e:
         logger.error(f"Error: {e}")
 
@@ -32,9 +32,9 @@ def main(batch_size: int, pdf_path_list: List[str]) -> None:
     pdf_path_list_masked = pdf_path_list[:batch_size]
     if os.path.exists("output/distance.xlsx"):
         # save a copy for backup 
-        # getBackUpCopy("output/distance.xlsx")
-        # getBackUpCopy("output/img_coords.xlsx")
-        # getBackUpCopy("output/text_coords.xlsx")
+        getBackUpCopy("output/distance.xlsx")
+        getBackUpCopy("output/img_coords.xlsx")
+        getBackUpCopy("output/text_coords.xlsx")
         
         df_dist = pd.read_excel("output/distance.xlsx")
         file_mask = df_dist["PDF_name"].unique().tolist()
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         pdf_path_list = getPathBundle("data/SUS/2023")
         # pdf_path_list = getPathBundle('data/SUS/2022')
         # pdf_path_list = getPathBundle('data/SUS/2023/error file')
-        main(50, pdf_path_list)
+        main(1, pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
