@@ -120,3 +120,6 @@ class OpenPDF:
         """
         from .img_text_match import PDFMatch
         return PDFMatch(self, global_config_name)
+    
+    def getDataRetrofitting(self) -> "DataRetrofitting": 
+        

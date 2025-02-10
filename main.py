@@ -246,7 +246,7 @@ if __name__ == "__main__":
         pdf_path_list = getPathBundle("data/SUS/2023")
         # pdf_path_list = getPathBundle('data/SUS/2022')
         # pdf_path_list = getPathBundle('data/SUS/2023/error file')
-        main(1, pdf_path_list)
+        main(50, pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
