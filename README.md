@@ -13,3 +13,6 @@ Use the data file in folder `sample_data` and conduct a pilot test. To do so, pl
 
 ## Warning
 Running `main.py` can only compute the original data based on the CLIP model. To process the data into variables, please run `calculation.py` afterwards.
+
+## TODO
+- [ ] Improve the code preformance with Pyspark
