@@ -27,6 +27,8 @@ class DataRetrofitting:
             & (self.df_distance["thscode"] == self.pdf.thscode),         
             "PDF_pages"
         ] = self.pdf.pdf_page_count
+        
+        return self.df_distance
 
     def getDiagonalLength(self) -> float:
         """calculate diagonal length of the PDF page
