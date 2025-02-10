@@ -37,5 +37,6 @@ class DataRetrofitting:
             float: the length of the
         """
         width, height = self.pdf.pdf[3].rect.width, self.pdf.pdf[2].rect.height
-
+        print("PDF width: ", width)
+        print("PDF height: ", height)
         return math.sqrt(width**2 + height**2)
