@@ -20,7 +20,7 @@ class TestDataRetrofitting(unittest.TestCase):
         data_retrofitting_task1 = DataRetrofitting(mock_OpenPDF(), df_distance)
         df_distance2 = data_retrofitting_task1.main()
         
-        self.assertEqual(df_distance2.columns[-2:], ["diag", "PDF_pages"])
+        self.assertEqual(df_distance2.columns[-2:].to_list(), ["diag", "PDF_pages"])
         
 if __name__ == '__main__':
     unittest.main()
