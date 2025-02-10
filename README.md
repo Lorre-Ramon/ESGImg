@@ -11,3 +11,8 @@ Create folder `data` and `log` respectively, the first for PDF data storage, the
 ## Sample run
 Use the data file in folder `sample_data` and conduct a pilot test. To do so, please replace `pdf_path_list = getPathBundle("data/ESG/2023")` in `main.py` to `pdf_path_list = getPathBundle("sample_data")`.
 
+## Warning
+Running `main.py` can only compute the original data based on the CLIP model. To process the data into variables, please run `calculation.py` afterwards.
+
+## TODO
+- [ ] Improve the code preformance with Pyspark
