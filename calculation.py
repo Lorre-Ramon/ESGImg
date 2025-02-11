@@ -2,15 +2,15 @@ from utils import logger, getRunTime
 from modules import OpenPDF, DataRetrofitting
 from main import getBackUpCopy, getPathBundle
 import os 
+from tqdm import tqdm
 
 from typing import List 
 import pandas as pd 
-import os 
 
 def main(): 
     pass 
 
-@getRunTime("数据补录")
+# @getRunTime("数据补录")
 def data_retrofitting_main(batch_size: int, pdf_path_list: List[str]):
     
     distance_df_filepath = os.path.join("output", "distance.xlsx")
@@ -33,8 +33,8 @@ def data_retrofitting_main(batch_size: int, pdf_path_list: List[str]):
     #     print(f"{len(pdf_path_list_masked)} PDFs left")
     #     pdf_path_list_masked = pdf_path_list_masked[:batch_size]
 
-    for pdf_path in pdf_path_list:
-        print(f"Processing {os.path.basename(pdf_path)}")
+    for pdf_path in tqdm(pdf_path_list):
+        # print(f"Processing {os.path.basename(pdf_path)}")
         try: 
             with OpenPDF(pdf_path, "test_set") as pdf:
                 data_retrofitting_task = DataRetrofitting(pdf, df_dist)
@@ -42,18 +42,14 @@ def data_retrofitting_main(batch_size: int, pdf_path_list: List[str]):
                 df_dist.to_excel(distance_df_filepath, index=False)
         except Exception as e:
             logger.error(f"Error processing {os.path.basename(pdf_path)}: {e}")
-        
-            
-def getDataRetrofitting(): 
-    pass
 
 
 if __name__ == "__main__":
     try: 
         logger.info("程序开始")
         print("程序开始")
-        pdf_path_list = getPathBundle("data/SUS/2023")
-        data_retrofitting_main(10,pdf_path_list)
+        pdf_path_list = getPathBundle("data/ESG/2023")
+        data_retrofitting_main(2000,pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
