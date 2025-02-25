@@ -39,10 +39,10 @@ def data_retrofitting_main(batch_size: int, pdf_path_list: List[str]):
             with OpenPDF(pdf_path, "test_set") as pdf:
                 data_retrofitting_task = DataRetrofitting(pdf, df_dist)
                 df_dist = data_retrofitting_task.main()
-                df_dist.to_excel(distance_df_filepath, index=False)
         except Exception as e:
             logger.error(f"Error processing {os.path.basename(pdf_path)}: {e}")
 
+    df_dist.to_excel(distance_df_filepath, index=False)
 
 if __name__ == "__main__":
     try: 

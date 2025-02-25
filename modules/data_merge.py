@@ -48,5 +48,13 @@ class DataMerge:
         return (
             PDF_name.split("-")[0][-2:]
         )
+        
+    def mergeIndustryCatagories(self) -> None: 
+        
+        df_StockIndustryCatagories = pd.read_excel("data/BasicInfo/证监会行业分类标准.xlsx")
+        if 'Unnamed: 0' in df_StockIndustryCatagories.columns:
+            df_StockIndustryCatagories.drop('Unnamed: 0', axis=1, inplace=True)
+            
+        
 
     
