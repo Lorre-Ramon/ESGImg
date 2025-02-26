@@ -1,4 +1,5 @@
 import pandas as pd
+import akshare as ak
 import os
 
 
@@ -47,7 +48,7 @@ class DataMerge:
         """
         return (
             PDF_name.split("-")[0][-2:]
-        )
+        )    
         
     def mergeIndustryCatagories(self) -> None: 
         
@@ -55,6 +56,32 @@ class DataMerge:
         if 'Unnamed: 0' in df_StockIndustryCatagories.columns:
             df_StockIndustryCatagories.drop('Unnamed: 0', axis=1, inplace=True)
             
+    def readIndustryInfo(self, corp_code:str)  -> str: 
+        """reads the industry information from the akshare library and returns the industry code
+
+        Args:
+            corp_code (str): the corporation listed code, 6 digits string
+
+        Raises:
+            ValueError: if the corporation code is not a 6 digits string
+            ValueError: if no industry information is found for the corporation code
+
+        Returns:
+            str: the industry code
+        """
+        df_StockIndustryCatagories = pd.read_excel("data/BasicInfo/证监会行业分类标准.xlsx")
+        
+        if len(corp_code) != 6: 
+            raise ValueError("Corporation code should be a string of length 6") #TODO: maybe update to return None
+        industry_name_list = ak.stock_profile_cninfo(symbol = str(corp_code))['所属行业'].values.tolist()
+        
+        if len(industry_name_list) == 0:
+            raise ValueError(f"No industry information found for {corp_code}") #TODO: maybe update to return None
+        
+        industry_name = industry_name_list[0]
+        industry_code = df_StockIndustryCatagories[df_StockIndustryCatagories['类目名称'] == industry_name]['类目编码'].values.tolist()[-1]
+        
+        return industry_code
         
 
     
