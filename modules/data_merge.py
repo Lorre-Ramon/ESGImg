@@ -8,6 +8,12 @@ from typing import List
 class DataMerge:
     def __init__(self, df_distance: pd.DataFrame) -> None:
         self.df_dist = df_distance
+        
+        import json 
+        with open("configs/data_merge_configs.json", "r") as f:
+            configs = json.load(f) 
+            
+        self.data_merge_configs = configs["production"]
 
     def main(self): 
         
@@ -23,6 +29,9 @@ class DataMerge:
         self.df_PDF = self.df_PDF.merge(self.df_dist[['PDF_name', 'thscode', 'year', 'type']], 
                           on=['PDF_name', 'thscode'], 
                           how='left').rename(columns={"type": "Pub_type", "year":"Pub_year"})
+        
+        self.df_PDF["Mono_idst"] = self.df_PDF["Corp_industry_code"].apply(self.getDummyVariMonopolyIndustry)
+        self.df_PDF["Poll_idst"] = self.df_PDF["Corp_industry_code"].apply(self.getDummyVariPollutionIndustry)
         
     def getCorpCode(self, PDF_name:str) -> str:
         """extracts the corporation listed code from the PDF name
@@ -86,13 +95,25 @@ class DataMerge:
         return industry_code
     
     def getDummyVariPollutionIndustry(self, corp_industry_code:str) -> bool: 
-        
-        import json 
-        with open("configs/data_merge_configs.json", "r") as f:
-            configs = json.load(f) 
-            
-        self.data_merge_configs = configs["production"]
-        
+        """return True if the industry code is in the list of pollution industries
+
+        Args:
+            corp_industry_code (str): the industry code
+
+        Returns:
+            bool: True if the industry code is in the list of pollution industries
+        """
         return corp_industry_code in self.data_merge_configs
 
+    def getDummyVariMonopolyIndustry(self, corp_industry_code:str) -> bool:
+        """return True if the industry code is in the list of monopoly industries
+
+        Args:
+            corp_industry_code (str): the industry code
+
+        Returns:
+            bool: True if the industry code is in the list of monopoly industries
+        """
+        return corp_industry_code in self.data_merge_configs
+    
     
