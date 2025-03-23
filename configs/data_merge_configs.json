@@ -1,0 +1,6 @@
+{ 
+    "production":{ 
+        "pollution_industry_list": ["C25", "C26", "C28", "C31", "C32", "C33"],
+        "monopoly_industry_list": ["D44", "D45", "D46"]
+    }
+}

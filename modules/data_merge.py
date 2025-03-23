@@ -2,6 +2,8 @@ import pandas as pd
 import akshare as ak
 import os
 
+from typing import List
+
 
 class DataMerge:
     def __init__(self, df_distance: pd.DataFrame) -> None:
@@ -82,6 +84,15 @@ class DataMerge:
         industry_code = df_StockIndustryCatagories[df_StockIndustryCatagories['类目名称'] == industry_name]['类目编码'].values.tolist()[-1]
         
         return industry_code
+    
+    def getDummyVariPollutionIndustry(self, corp_industry_code:str) -> bool: 
         
+        import json 
+        with open("configs/data_merge_configs.json", "r") as f:
+            configs = json.load(f) 
+            
+        self.data_merge_configs = configs["production"]
+        
+        return corp_industry_code in self.data_merge_configs
 
     
