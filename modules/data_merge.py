@@ -116,4 +116,26 @@ class DataMerge:
         """
         return corp_industry_code in self.data_merge_configs
     
+    def getBalanceSheet(self,date:str) -> pd.DataFrame: 
+        """reads the balance sheet data from the akshare library and returns the data for the given date
+
+        Args:
+            date (str): choice of {"XXXX0331", "XXXX0630", "XXXX0930", "XXXX1231"}; startingfrom 20081231; e.g. "20210331"
+
+        Returns:
+            pd.DataFrame: balance sheet data for the given date
+        """
+        return ak.stock_zcfz_em(date=date)
+    
+    def getIncomeStatement(self,date:str) -> pd.DataFrame: 
+        """reads the income statement data from the akshare library and returns the data for the given date
+
+        Args:
+            date (str): choice of {"XXXX0331", "XXXX0630", "XXXX0930", "XXXX1231"}; startingfrom 20081231; e.g. "20210331"
+
+        Returns:
+            pd.DataFrame: income statement data for the given date
+        """
+        return ak.stock_lrb_em(date=date)
+    
     
