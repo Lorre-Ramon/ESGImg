@@ -239,11 +239,18 @@ if __name__ == "__main__":
          "data/SUS/2022/00941.HK-中国移动-中国移动 2022年度可持续发展报告-2023-03-24.pdf"
     ) 
     """
+    
+    """ new test path"""
+    pdf_test_path = "sample_data"
+    
+    """ production path
+    pdf_path = "data/ESG/2023"
+    """
 
     try:
         logger.info("程序开始")
         print("程序开始")
-        pdf_path_list = getPathBundle("data/ESG/2023")
+        pdf_path_list = getPathBundle(pdf_test_path)
         # pdf_path_list = getPathBundle('data/SUS/2022')
         # pdf_path_list = getPathBundle('data/SUS/2023/error file')
         main(100, pdf_path_list)

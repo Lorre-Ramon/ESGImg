@@ -25,14 +25,26 @@ class OpenPDF:
         # Basic Info
         self.getBasicInfo()
         
+    # def getBasicInfo(self) -> None: 
+    #     """获取PDF文件的基本信息 | 旧数据文件名格式"""
+    #     self.year:int = int(self.pdf_path.split("/")[2])
+    #     self.type:str = self.pdf_path.split("/")[1]
+    #     self.thscode:str = os.path.basename(self.pdf_path).split("-")[0]
+    #     self.mkt:str = self.thscode[-2:]
+    #     self.stock_name_cn:str = os.path.basename(self.pdf_path).split("-")[1]
+    #     self.PDF_name:str = os.path.basename(self.pdf_path).split("-")[2]
+        
+    #     self.pdf_filename:str = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
+        
     def getBasicInfo(self) -> None: 
-        """获取PDF文件的基本信息"""
-        self.year:int = int(self.pdf_path.split("/")[2])
-        self.type:str = self.pdf_path.split("/")[1]
-        self.thscode:str = os.path.basename(self.pdf_path).split("-")[0]
-        self.mkt:str = self.thscode[-2:]
-        self.stock_name_cn:str = os.path.basename(self.pdf_path).split("-")[1]
-        self.PDF_name:str = os.path.basename(self.pdf_path).split("-")[2]
+        """获取PDF文件的基本信息 | 新数据文件名格式"""
+        
+        self.type:str = os.path.basename(self.pdf_path).split("_")[2][1:]
+        self.thscode:str = os.path.basename(self.pdf_path).split("_")[0]
+        self.year:int = int(os.path.basename(self.pdf_path).split("_")[1])
+        self.mkt = None 
+        self.stock_name_cn:str = os.path.basename(self.pdf_path).split("_")[3]
+        self.PDF_name:str = os.path.basename(self.pdf_path).split("_")[3] + os.path.basename(self.pdf_path).split("_")[4]
         
         self.pdf_filename:str = f"{self.type}_{self.year}_{self.thscode}_{self.stock_name_cn}.pdf"
         
