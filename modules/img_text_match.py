@@ -174,12 +174,11 @@ class PDFMatch:
         device = self.global_config["device"]
         if (device == "mps") and (torch.backends.mps.is_available()):
             device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
         else:
             device = "cpu"
-        if device == "cuda":
-            raise NotImplementedError(
-                "Cuda option not implemented"
-            )  # TODO: enable cuda
+        
 
         model = model.to(device)
         image = preprocess(Image.open(img_path)).unsqueeze(0).to(device)
