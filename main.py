@@ -241,19 +241,19 @@ if __name__ == "__main__":
     """
     
     """ new test path"""
-    pdf_test_path = "sample_data"
+    # pdf_test_path = "sample_data"
     
-    """ production path
+    """ production path """
     pdf_path = "data/ESG/2023"
-    """
+    
 
     try:
         logger.info("程序开始")
         print("程序开始")
-        pdf_path_list = getPathBundle(pdf_test_path)
+        pdf_path_list = getPathBundle(pdf_path)
         # pdf_path_list = getPathBundle('data/SUS/2022')
         # pdf_path_list = getPathBundle('data/SUS/2023/error file')
-        main(100, pdf_path_list)
+        main(200000, pdf_path_list)
     except Exception as e:
         logger.error(f"Error: {e}")
         raise e
