@@ -10,6 +10,7 @@ class DataRetrofitting:
     def __init__(self, pdf_instance: OpenPDF, df_distance: pd.DataFrame):
         self.pdf: OpenPDF = pdf_instance
         self.df_distance: pd.DataFrame = df_distance
+        self.df_PDF: pd.DataFrame = pd.DataFrame()
         logger.info("Data Retrofitting task init.")
 
     def main(self):
@@ -38,3 +39,17 @@ class DataRetrofitting:
         """
         width, height = self.pdf.pdf[3].rect.width, self.pdf.pdf[2].rect.height
         return math.sqrt(width**2 + height**2)
+
+    def getPDFImgNum(self) -> None: 
+        """get the number of images in the PDF"""
+        self.df_PDF['PDF_pages'] = self.df_PDF.merge(
+        self.df_distance.groupby("PDF_name")["page"].count().reset_index(name = 'img_num'), 
+        on = 'PDF_name', how = 'left'
+        )
+        
+    def getPDFPageNum(self) -> None:
+        """get the number of pages in the PDF"""
+        self.df_PDF.loc['PDF_name' 'PDF_pages'] = self.pdf.pdf_page_count
+        
+    def 
+        

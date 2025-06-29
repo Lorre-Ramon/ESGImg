@@ -89,7 +89,7 @@ def extract_images(pdf: OpenPDF) -> None:
     Raises:
         e: Anomaly exception for debugging
     """
-    img_coords_df_filepath = os.path.join("output", "img_coords.xlsx")
+    img_coords_df_filepath = os.path.join("output", "img_coords.xlsx") 
     pdf.img_coords_df_filepath = img_coords_df_filepath
     if os.path.exists(img_coords_df_filepath):
         img_coords_df = pd.read_excel(img_coords_df_filepath)
