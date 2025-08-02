@@ -3,7 +3,7 @@
 
 ## What is this project all about
 This repository is built for the **ongoing** research project, which aims to provide more insights into image-based disclosure in capital markets using the method of machine learning. 
-![Hypothesis Development](./img/Hypothesis Development.png)
+![Hypothesis Development]("./img/Hypothesis Development.png")
 
 ## Installation 
 To get started, run the command line in your designated environment with: 
