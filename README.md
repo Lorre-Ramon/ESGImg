@@ -1,4 +1,8 @@
 # Impact of images in ESG reports on ESG ratings based on Clip model
+> Publishing this repository does not grant permission to reproduce or reuse the content without the consent of the repository owner and the other authors of the research.
+
+## What is this project all about
+This repository is built up for the **ongoing** research project, which aims to provide more insights into image-based disclosure in capital markets using the method of machine learning. 
 
 ## Installation 
 To get started, run the command line in your designated environment with: 
@@ -12,7 +16,4 @@ Create folder `data` and `log` respectively, the first for PDF data storage, the
 Use the data file in folder `sample_data` and conduct a pilot test. To do so, please replace `pdf_path_list = getPathBundle("data/ESG/2023")` in `main.py` to `pdf_path_list = getPathBundle("sample_data")`.
 
 ## Warning
-Running `main.py` can only compute the original data based on the CLIP model. To process the data into variables, please run `calculation.py` afterwards.
-
-## TODO
-- [ ] Improve the code preformance with Pyspark
+Running `main.py` can only compute the original data based on the CLIP model. 
