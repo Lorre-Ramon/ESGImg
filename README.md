@@ -5,7 +5,7 @@
 This repository is built for the **ongoing** research project, which aims to provide more insights into **image-based disclosure in capital markets using the method of machine learning**. 
 ![Hypothesis Development](./img/Hypothesis%20Development.png)
 
-We have now found the hypotheses to be statistically significant, and are expanding our dataset to improve the robustness of our research.
+We have now found the hypotheses statistically significant, and are expanding our dataset to improve the robustness of our research.
 
 ## Installation 
 To get started, run the command line in your designated environment with: 
