@@ -4,6 +4,7 @@
 ## What is this project all about
 This repository is built for the **ongoing** research project, which aims to provide more insights into **image-based disclosure in capital markets using the method of machine learning**. 
 ![Hypothesis Development](./img/Hypothesis%20Development.png)
+![TechRoadmap](./img/TechRoadmap.png)
 
 We have now found the hypotheses statistically significant, and are expanding our dataset to improve the robustness of our research.
 
