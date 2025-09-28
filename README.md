@@ -6,7 +6,7 @@ This repository is built for the **ongoing** research project, which aims to pro
 ![Hypothesis Development](./img/Hypothesis%20Development.png)
 ![TechRoadmap](./img/TechRoadmap.png)
 
-We have now found the hypotheses statistically significant, and are expanding our dataset to improve the robustness of our research.
+The hypothese are found statistically significant, more dataset are involved to improve the robustness of this research.
 
 ## Installation 
 To get started, run the command line in your designated environment with: 
