@@ -1,5 +1,5 @@
 # Impact of images in ESG reports on ESG ratings based on Clip model
-> Publishing this repository does not grant permission to reproduce or reuse the content without the consent of the repository owner and the other authors of the research.
+> Publishing this repository does not grant permission to reproduce or reuse the content without the consent of the repository owner.
 
 ## What is this project all about
 This repository is built for the **ongoing** research project, which aims to provide more insights into **image-based disclosure in capital markets using the method of machine learning**. 
